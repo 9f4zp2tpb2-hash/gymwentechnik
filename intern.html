@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Intern – GymWenTechnik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#0a0a0a; --dark:#111111; --mid:#1c1c1c; --border:#2a2a2a;
+      --text:#d4d0c8; --muted:#6b6660; --accent:#e8b44a; --accent2:#c0392b; --white:#f0ece3;
+      --green:#2ecc71; --blue:#3498db; --purple:#9b59b6;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(10,10,10,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: none; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; }
+    .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(10,10,10,0.98); z-index: 99; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--muted); font-size: 2rem; cursor: none; }
+
+    /* PAGE HERO */
+    #page-hero { min-height: 60vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 5rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(232,180,74,0.07) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(192,57,43,0.06) 0%, transparent 60%), linear-gradient(180deg, #0a0a0a 0%, #0f0d0b 100%); }
+    .beams { position: absolute; inset: 0; pointer-events: none; }
+    .beam { position: absolute; top: -10%; width: 2px; height: 110vh; background: linear-gradient(180deg, rgba(232,180,74,0.18) 0%, transparent 100%); transform-origin: top center; animation: flicker 4s infinite; }
+    .beam:nth-child(1) { left: 20%; transform: rotate(-8deg); animation-delay: 0s; }
+    .beam:nth-child(2) { left: 50%; transform: rotate(0deg); animation-delay: 1.2s; opacity: 0.7; }
+    .beam:nth-child(3) { left: 78%; transform: rotate(7deg); animation-delay: 2.4s; }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} 75%{opacity:0.9} }
+    .hero-breadcrumb { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+    .hero-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .hero-breadcrumb a:hover { text-decoration: underline; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 9rem); line-height: 0.92; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+    .hero-title .accent { color: var(--accent); }
+    .hero-title .dim { color: var(--muted); font-size: 0.55em; display: block; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* SECTIONS */
+    section { padding: 7rem 3rem; }
+    .section-label { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4.5rem); color: var(--white); line-height: 1; margin-bottom: 1.5rem; }
+    .divider { width: 60px; height: 2px; background: var(--accent); margin-bottom: 3rem; }
+
+    /* LOGIN */
+    .login-wrap { max-width: 440px; }
+    .login-box { background: var(--mid); border: 1px solid var(--border); padding: 3rem; position: relative; }
+    .login-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .login-box h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); margin-bottom: 0.4rem; }
+    .login-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    .login-form { display: flex; flex-direction: column; gap: 1rem; }
+    .login-form input { background: var(--dark); border: 1px solid var(--border); color: var(--text); padding: 0.85rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    .login-form input:focus { border-color: var(--accent); }
+    .login-btn { padding: 0.9rem; background: transparent; border: 1px solid var(--accent); color: var(--accent); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: none; transition: all 0.2s; }
+    .login-btn:hover { background: var(--accent); color: var(--black); }
+    .login-error { font-size: 0.82rem; color: var(--accent2); display: none; padding: 0.6rem 1rem; border-left: 3px solid var(--accent2); background: rgba(192,57,43,0.1); }
+
+    /* DASHBOARD */
+    .dashboard { display: none; max-width: 1100px; }
+    .dash-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border); }
+    .dash-welcome h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--accent); line-height: 1; }
+    .dash-welcome p { font-size: 0.85rem; color: var(--muted); margin-top: 0.3rem; }
+    .role-badge { display: inline-block; padding: 0.3rem 0.8rem; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; border: 1px solid; margin-top: 0.5rem; }
+    .role-badge.admin          { color: #f39c12; border-color: #f39c12; background: rgba(243,156,18,0.1); }
+    .role-badge.verwaltendes   { color: var(--purple); border-color: var(--purple); background: rgba(155,89,182,0.1); }
+    .role-badge.vertrauensvolles { color: var(--blue); border-color: var(--blue); background: rgba(52,152,219,0.1); }
+    .role-badge.einfaches      { color: var(--green); border-color: var(--green); background: rgba(46,204,113,0.1); }
+    .logout-btn { padding: 0.55rem 1.3rem; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: none; transition: all 0.2s; }
+    .logout-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    /* DASH TABS */
+    .dash-tabs { display: flex; gap: 2px; margin-bottom: 2.5rem; flex-wrap: wrap; }
+    .dash-tab { padding: 0.7rem 1.4rem; background: var(--mid); border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; cursor: none; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .dash-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: #1a1a1a; }
+    .dash-tab:hover { color: var(--text); }
+    .dash-panel { display: none; }
+    .dash-panel.active { display: block; }
+
+    /* ADMIN SECTION */
+    .admin-section { margin-bottom: 3rem; }
+    .admin-section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--white); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+
+    /* USER TABLE */
+    .user-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .user-table th { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid var(--border); }
+    .user-table td { padding: 0.9rem 1rem; border-bottom: 1px solid #1a1a1a; font-size: 0.88rem; vertical-align: middle; }
+    .user-table tr:hover td { background: var(--mid); }
+    .action-btn { padding: 0.3rem 0.75rem; background: none; border: 1px solid var(--border); color: var(--muted); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: none; transition: all 0.2s; margin-right: 0.3rem; }
+    .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .action-btn.danger:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    /* ADD USER FORM */
+    .new-user-form { background: var(--mid); padding: 2rem; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 1rem; align-items: end; }
+    .field-group { display: flex; flex-direction: column; gap: 0.35rem; }
+    .field-group label { font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .field-group input, .field-group select { background: var(--dark); border: 1px solid var(--border); color: var(--text); padding: 0.72rem 0.9rem; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; outline: none; width: 100%; transition: border-color 0.2s; }
+    .field-group input:focus, .field-group select:focus { border-color: var(--accent); }
+    .field-group select option { background: var(--dark); }
+    .add-btn { padding: 0.72rem 1.5rem; background: var(--accent); color: var(--black); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; cursor: none; transition: background 0.2s; white-space: nowrap; height: fit-content; }
+    .add-btn:hover { background: #d4a438; }
+    .success-msg { font-size: 0.82rem; color: var(--green); padding: 0.6rem 1rem; border-left: 3px solid var(--green); background: rgba(46,204,113,0.08); display: none; margin-top: 0.75rem; }
+
+    /* EVENT MANAGER */
+    .ev-list-item { background: var(--mid); padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; gap: 1rem; }
+    .ev-list-name { font-size: 0.92rem; color: var(--white); }
+    .ev-list-date { font-size: 0.75rem; color: var(--muted); }
+    .ev-add-form { background: var(--mid); padding: 1.8rem; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 1rem; align-items: end; margin-top: 1rem; }
+
+    /* MATERIAL LIST */
+    .material-item { background: var(--mid); padding: 1.2rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 2px; }
+    .material-item-name { font-size: 0.9rem; color: var(--white); }
+    .material-item-desc { font-size: 0.78rem; color: var(--muted); }
+    .material-link { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); text-decoration: none; border: 1px solid var(--accent); padding: 0.3rem 0.75rem; transition: all 0.2s; white-space: nowrap; }
+    .material-link:hover { background: var(--accent); color: var(--black); }
+    .add-material-form { background: var(--mid); padding: 1.5rem; border: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; margin-top: 0.5rem; }
+
+    /* GALLERY MANAGER */
+    .gal-manager-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; margin-bottom: 1.5rem; }
+    .gal-manage-item { aspect-ratio: 4/3; position: relative; background: var(--mid); overflow: hidden; }
+    .gal-manage-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .gal-manage-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.65); opacity: 0; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; }
+    .gal-manage-item:hover .gal-manage-overlay { opacity: 1; }
+    .gal-del-btn { padding: 0.4rem 0.9rem; background: var(--accent2); color: white; border: none; font-size: 0.72rem; cursor: none; letter-spacing: 0.1em; text-transform: uppercase; }
+    .upload-area { border: 2px dashed var(--border); padding: 2.5rem; text-align: center; transition: border-color 0.2s; }
+    .upload-area:hover { border-color: var(--accent); }
+    .upload-area label { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; cursor: none; color: var(--muted); font-size: 0.85rem; }
+    .upload-area input[type=file] { display: none; }
+    .upload-area svg { width: 32px; height: 32px; color: var(--accent); margin-bottom: 0.3rem; }
+
+    /* DIENSTPLAN */
+    .dienstplan-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2px; }
+    .dp-card { background: var(--mid); padding: 2rem; border-left: 3px solid var(--border); transition: border-color 0.2s; }
+    .dp-card:hover { border-left-color: var(--accent); }
+    .dp-card-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--white); margin-bottom: 0.4rem; }
+    .dp-card-desc { font-size: 0.8rem; color: var(--muted); }
+
+    /* MODAL */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 200; display: none; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: var(--dark); border: 1px solid var(--border); padding: 2.5rem; width: 420px; max-width: 92vw; position: relative; }
+    .modal-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
+    .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--white); margin-bottom: 1.5rem; }
+    .modal-form { display: flex; flex-direction: column; gap: 1rem; }
+    .modal-form input, .modal-form select { background: var(--mid); border: 1px solid var(--border); color: var(--text); padding: 0.78rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; outline: none; width: 100%; transition: border-color 0.2s; }
+    .modal-form input:focus, .modal-form select:focus { border-color: var(--accent); }
+    .modal-form select option { background: var(--dark); }
+    .modal-form label { font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 0.3rem; }
+    .modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1.2rem; }
+    .modal-save { padding: 0.68rem 1.5rem; background: var(--accent); color: var(--black); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; cursor: none; letter-spacing: 0.1em; text-transform: uppercase; transition: background 0.2s; }
+    .modal-save:hover { background: #d4a438; }
+    .modal-cancel { padding: 0.68rem 1.2rem; background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; cursor: none; transition: all 0.2s; }
+    .modal-cancel:hover { border-color: var(--accent2); color: var(--accent2); }
+
+    /* EMPTY */
+    .empty-state { color: var(--muted); font-size: 0.88rem; padding: 1.5rem 0; }
+
+    /* FOOTER */
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) { .new-user-form, .ev-add-form { grid-template-columns: 1fr; } .add-material-form { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #page-hero { padding: 0 1.5rem 4rem; min-height: 50vh; }
+      section { padding: 5rem 1.5rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html" class="active">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<!-- PAGE HERO -->
+<section id="page-hero">
+  <div class="hero-bg"></div>
+  <div class="beams">
+    <div class="beam"></div>
+    <div class="beam"></div>
+    <div class="beam"></div>
+  </div>
+  <div class="hero-breadcrumb">
+    <a href="https://gymwentechnik.de">Startseite</a> &nbsp;/&nbsp; Intern
+  </div>
+  <h1 class="hero-title">
+    Interner<br>
+    <span class="accent">Bereich</span>
+    <span class="dim">Nur für Mitglieder</span>
+  </h1>
+</section>
+
+<!-- INTERN -->
+<section style="background: var(--dark);">
+  <div class="section-label">Mitglieder</div>
+  <h2 class="section-title">Anmeldung</h2>
+  <div class="divider"></div>
+  <div class="reveal">
+
+    <!-- LOGIN -->
+    <div class="login-wrap" id="loginBox">
+      <div class="login-box">
+        <h3>Einloggen</h3>
+        <p>Dieser Bereich ist nur für Mitglieder der GymWenTechnik.</p>
+        <div class="login-form">
+          <input type="text" id="loginUser" placeholder="Benutzername" />
+          <input type="password" id="loginPass" placeholder="Passwort" onkeydown="if(event.key==='Enter') doLogin()" />
+          <div class="login-error" id="loginError">Falscher Benutzername oder Passwort.</div>
+          <button class="login-btn" onclick="doLogin()">Einloggen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboard">
+      <div class="dash-header">
+        <div class="dash-welcome">
+          <h3 id="dashGreet">Willkommen!</h3>
+          <p>Eingeloggt als <strong id="dashUser" style="color:var(--text)"></strong></p>
+          <span class="role-badge" id="dashRoleBadge"></span>
+        </div>
+        <button class="logout-btn" onclick="doLogout()">Ausloggen</button>
+      </div>
+      <div class="dash-tabs" id="dashTabs"></div>
+      <div id="dashPanels"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EDIT USER MODAL -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-title">Benutzer bearbeiten</div>
+    <div class="modal-form">
+      <div><label>Benutzername</label><input type="text" id="editUsername" /></div>
+      <div><label>Neues Passwort (leer = unverändert)</label><input type="password" id="editPassword" placeholder="Neues Passwort…" /></div>
+      <div>
+        <label>Rolle</label>
+        <select id="editRole">
+          <option value="admin">Admin</option>
+          <option value="verwaltendes">Verwaltendes Mitglied</option>
+          <option value="vertrauensvolles">Vertrauensvolles Mitglied</option>
+          <option value="einfaches">Einfaches Mitglied</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeEditModal()">Abbrechen</button>
+      <button class="modal-save" onclick="saveEditUser()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2025 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-text">Made with ♥ backstage</div>
+</footer>
+
+<script>
+// ─── CURSOR ───────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX - 6 + 'px';
+  cursor.style.top  = e.clientY - 6 + 'px';
+});
+document.addEventListener('mouseover', e => {
+  cursor.style.transform = e.target.matches('a,button,input,select,.action-btn,.add-btn,.gal-del-btn,.modal-save,.modal-cancel,.logout-btn,.login-btn,.material-link') ? 'scale(2.2)' : 'scale(1)';
+});
+
+// ─── MOBILE MENU ─────────────────────────────────────────
+document.getElementById('menuBtn').onclick   = () => document.getElementById('mobileMenu').classList.add('open');
+document.getElementById('closeMenu').onclick = () => document.getElementById('mobileMenu').classList.remove('open');
+
+// ─── SCROLL REVEAL ────────────────────────────────────────
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+// ─── STATE ────────────────────────────────────────────────
+const DEFAULT_STATE = {
+  users: [
+    { id:1, username:'admin',   password:'admin123',   role:'admin' },
+    { id:2, username:'technik', password:'spezi2024',  role:'verwaltendes' },
+    { id:3, username:'max',     password:'member123',  role:'vertrauensvolles' },
+    { id:4, username:'gast',    password:'gast123',    role:'einfaches' }
+  ],
+  events: {
+    upcoming: [
+      { id:1, name:'Schulkonzert Sommer', date:'Juli 2025', desc:'Jährliches Sommerkonzert aller Ensembles.', tags:['Ton','Licht','Konzert'] },
+      { id:2, name:'Theater AG Aufführung', date:'Juni 2025', desc:'Generalprobe und Aufführung des diesjährigen Theaterstücks.', tags:['Theater','Licht','Bühnenbau'] }
+    ],
+    past: [
+      { id:3, name:'Weihnachtskonzert 2024', date:'Dezember 2024', desc:'Atmosphärisches Adventskonzert in der Schulaula.', tags:['Konzert','Licht'] },
+      { id:4, name:'Abiturfeier 2024', date:'Juli 2024', desc:'Feierlicher Abend für die Abiturjahrgänge.', tags:['Event','Ton','Video'] }
+    ],
+    projects: [
+      { id:5, name:'Neue Lichtanlage', date:'laufend', desc:'Planung und Installation einer neuen LED-Bühnenbeleuchtung.', tags:['Licht','Technik'] }
+    ]
+  },
+  gallery: [],
+  materials: [
+    { id:1, name:'Lichtpult-Handbuch', desc:'Bedienungsanleitung für das Grand MA2', url:'#' },
+    { id:2, name:'Sicherheitsunterweisungen', desc:'Pflichtlektüre für alle Mitglieder', url:'#' },
+    { id:3, name:'Veranstaltungscheckliste', desc:'Checkliste vor jeder Veranstaltung', url:'#' }
+  ],
+  nextId: 10
+};
+
+function loadState() { try { const s = localStorage.getItem('gwt_state'); if (s) return JSON.parse(s); } catch(e) {} return null; }
+function saveState() { try { localStorage.setItem('gwt_state', JSON.stringify(STATE)); } catch(e) {} }
+let STATE = loadState() || JSON.parse(JSON.stringify(DEFAULT_STATE));
+let currentUser = null;
+let editingUserId = null;
+
+// ─── PERMISSIONS ─────────────────────────────────────────
+const PERMISSIONS = {
+  admin:             ['materials','events_view','events_manage','gallery_manage','users_manage','dienstplan'],
+  verwaltendes:      ['materials','events_view','events_manage','gallery_manage','dienstplan'],
+  vertrauensvolles:  ['materials','events_view','dienstplan'],
+  einfaches:         ['materials']
+};
+const ROLE_LABELS = {
+  admin:'Admin', verwaltendes:'Verwaltendes Mitglied',
+  vertrauensvolles:'Vertrauensvolles Mitglied', einfaches:'Einfaches Mitglied'
+};
+function can(p) { return currentUser && PERMISSIONS[currentUser.role]?.includes(p); }
+
+// ─── LOGIN / LOGOUT ───────────────────────────────────────
+function doLogin() {
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const found = STATE.users.find(x => x.username === u && x.password === p);
+  if (found) {
+    currentUser = found;
+    document.getElementById('loginBox').style.display = 'none';
+    const dash = document.getElementById('dashboard');
+    dash.style.display = 'block';
+    document.getElementById('dashGreet').textContent = 'Willkommen, ' + found.username + '!';
+    document.getElementById('dashUser').textContent = found.username;
+    const badge = document.getElementById('dashRoleBadge');
+    badge.textContent = ROLE_LABELS[found.role];
+    badge.className = 'role-badge ' + found.role;
+    document.getElementById('loginError').style.display = 'none';
+    buildDashboard();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+function doLogout() {
+  currentUser = null;
+  document.getElementById('loginBox').style.display = 'block';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+// ─── DASHBOARD BUILDER ────────────────────────────────────
+function buildDashboard() {
+  const tabsEl   = document.getElementById('dashTabs');
+  const panelsEl = document.getElementById('dashPanels');
+  tabsEl.innerHTML = '';
+  panelsEl.innerHTML = '';
+  const tabs = [];
+  tabs.push({ id:'materialien', label:'Materialien' });
+  if (can('dienstplan'))     tabs.push({ id:'dienstplan',  label:'Dienstplan' });
+  if (can('events_view'))    tabs.push({ id:'events',      label:'Veranstaltungen' });
+  if (can('gallery_manage')) tabs.push({ id:'galerie',     label:'Galerie' });
+  if (can('users_manage'))   tabs.push({ id:'benutzer',    label:'Benutzer' });
+
+  tabs.forEach((t, i) => {
+    tabsEl.innerHTML += `<button class="dash-tab${i===0?' active':''}" data-id="${t.id}" onclick="switchDashTab('${t.id}')">${t.label}</button>`;
+    panelsEl.innerHTML += `<div class="dash-panel${i===0?' active':''}" id="dpanel-${t.id}"></div>`;
+  });
+  tabs.forEach(t => renderPanel(t.id));
+}
+
+function switchDashTab(id) {
+  document.querySelectorAll('.dash-tab').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+  document.querySelectorAll('.dash-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('dpanel-' + id)?.classList.add('active');
+}
+
+// ─── PANEL RENDERERS ─────────────────────────────────────
+function renderPanel(id) {
+  const el = document.getElementById('dpanel-' + id);
+  if (!el) return;
+
+  // ── MATERIALIEN ──
+  if (id === 'materialien') {
+    const canAdd = can('events_manage');
+    el.innerHTML = `
+      <div class="admin-section">
+        <div class="admin-section-title">Materialien & Dokumente</div>
+        <div id="mat-list"></div>
+        ${canAdd ? `
+        <div class="admin-section-title" style="margin-top:2rem">Datei hochladen</div>
+        <div class="upload-area" style="margin-bottom:1.5rem">
+          <label>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Datei auswählen</span>
+            <span style="font-size:0.75rem;color:var(--border)">PDF, Word, Excel, Bilder</span>
+            <input type="file" multiple onchange="uploadMaterialFiles(event)" />
+          </label>
+        </div>
+        <div class="admin-section-title">Manuell hinzufügen</div>
+        <div class="add-material-form">
+          <div class="field-group"><label>Bezeichnung</label><input type="text" id="matName" placeholder="Name" /></div>
+          <div class="field-group"><label>Beschreibung</label><input type="text" id="matDesc" placeholder="Kurzbeschreibung" /></div>
+          <div><button class="add-btn" onclick="addMaterial()">Hinzufügen</button></div>
+        </div>
+        <div class="success-msg" id="matSuccess">✓ Hinzugefügt!</div>` : ''}
+      </div>`;
+    renderMaterialList();
+  }
+
+  // ── DIENSTPLAN ──
+  if (id === 'dienstplan') {
+    el.innerHTML = `
+      <div class="admin-section">
+        <div class="admin-section-title">Dienstplan</div>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:1.5rem">Aktuelle Einteilung für Veranstaltungen.</p>
+        <div class="dienstplan-grid">
+          <div class="dp-card"><div class="dp-card-title">Tontechnik</div><div class="dp-card-desc">Zuständige werden hier eingetragen</div></div>
+          <div class="dp-card"><div class="dp-card-title">Lichttechnik</div><div class="dp-card-desc">Zuständige werden hier eingetragen</div></div>
+          <div class="dp-card"><div class="dp-card-title">Bühnenaufbau</div><div class="dp-card-desc">Zuständige werden hier eingetragen</div></div>
+          <div class="dp-card"><div class="dp-card-title">Videotechnik</div><div class="dp-card-desc">Zuständige werden hier eingetragen</div></div>
+        </div>
+      </div>`;
+  }
+
+  // ── EVENTS ──
+  if (id === 'events') {
+    const canManage = can('events_manage');
+    const addForm = (suffix, placeholder) => canManage ? `
+      <div class="ev-add-form">
+        <div class="field-group"><label>Name</label><input type="text" id="nEv${suffix}" placeholder="${placeholder}" /></div>
+        <div class="field-group"><label>Datum</label><input type="text" id="nDt${suffix}" placeholder="z.B. Juli 2025" /></div>
+        <div class="field-group"><label>Beschreibung</label><input type="text" id="nDs${suffix}" placeholder="Kurzbeschreibung" /></div>
+        <div class="field-group"><label>Tags (Komma)</label><input type="text" id="nTg${suffix}" placeholder="Ton, Licht" /></div>
+        <div><button class="add-btn" onclick="addEvent('${suffix}')">Hinzufügen</button></div>
+      </div>` : '';
+    el.innerHTML = `
+      <div class="admin-section">
+        <div class="admin-section-title">Anstehende Veranstaltungen</div>
+        <div id="dm-upcoming"></div>${addForm('upcoming','Veranstaltungsname')}
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">Laufende Projekte</div>
+        <div id="dm-projects"></div>${addForm('projects','Projektname')}
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">Vergangene Veranstaltungen</div>
+        <div id="dm-past"></div>${addForm('past','Veranstaltungsname')}
+      </div>`;
+    renderDmEvents();
+  }
+
+  // ── GALERIE ──
+  if (id === 'galerie') {
+    el.innerHTML = `
+      <div class="admin-section">
+        <div class="admin-section-title">Galerie verwalten</div>
+        <div class="gal-manager-grid" id="gal-manage-grid"></div>
+        <div class="upload-area">
+          <label>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Foto hochladen</span>
+            <span style="font-size:0.75rem;color:var(--border)">JPG, PNG – mehrere möglich</span>
+            <input type="file" accept="image/*" multiple onchange="uploadImages(event)" />
+          </label>
+        </div>
+      </div>`;
+    renderGalManage();
+  }
+
+  // ── BENUTZER ──
+  if (id === 'benutzer') {
+    el.innerHTML = `
+      <div class="admin-section">
+        <div class="admin-section-title">Benutzerverwaltung</div>
+        <table class="user-table">
+          <thead><tr><th>#</th><th>Benutzername</th><th>Rolle</th><th>Aktionen</th></tr></thead>
+          <tbody id="user-tbody"></tbody>
+        </table>
+        <div class="success-msg" id="userSuccess">✓ Änderungen gespeichert!</div>
+      </div>
+      <div class="admin-section">
+        <div class="admin-section-title">Neuen Benutzer anlegen</div>
+        <div class="new-user-form">
+          <div class="field-group"><label>Benutzername</label><input type="text" id="newUsername" placeholder="benutzername" /></div>
+          <div class="field-group"><label>Passwort</label><input type="password" id="newPassword" placeholder="passwort" /></div>
+          <div class="field-group"><label>Rolle</label>
+            <select id="newRole">
+              <option value="verwaltendes">Verwaltendes Mitglied</option>
+              <option value="vertrauensvolles">Vertrauensvolles Mitglied</option>
+              <option value="einfaches">Einfaches Mitglied</option>
+            </select>
+          </div>
+          <div><button class="add-btn" onclick="addUser()">Anlegen</button></div>
+        </div>
+        <div class="success-msg" id="addUserSuccess">✓ Benutzer angelegt!</div>
+      </div>`;
+    renderUserTable();
+  }
+}
+
+// ─── MATERIALS ────────────────────────────────────────────
+function renderMaterialList() {
+  const el = document.getElementById('mat-list');
+  if (!el) return;
+  const canDel = can('events_manage');
+  el.innerHTML = STATE.materials.map(m => `
+    <div class="material-item">
+      <div><div class="material-item-name">${m.name}</div><div class="material-item-desc">${m.desc}</div></div>
+      <div style="display:flex;gap:0.5rem;align-items:center;flex-shrink:0">
+        ${m.dataUrl ? `<a href="${m.dataUrl}" download="${m.name}" class="material-link">Download</a>` : `<a href="${m.url}" class="material-link">Öffnen</a>`}
+        ${canDel ? `<button class="action-btn danger" onclick="deleteMaterial(${m.id})">Löschen</button>` : ''}
+      </div>
+    </div>`).join('') || '<p class="empty-state">Keine Materialien vorhanden.</p>';
+}
+
+function uploadMaterialFiles(e) {
+  [...e.target.files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      STATE.materials.push({ id: STATE.nextId++, name: file.name, desc: `${(file.size/1024).toFixed(0)} KB`, url:'#', dataUrl: ev.target.result });
+      saveState(); renderMaterialList();
+      const s = document.getElementById('matSuccess'); if (s) { s.style.display='block'; setTimeout(()=>s.style.display='none',2500); }
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function addMaterial() {
+  const name = document.getElementById('matName')?.value.trim();
+  const desc = document.getElementById('matDesc')?.value.trim();
+  if (!name) return;
+  STATE.materials.push({ id: STATE.nextId++, name, desc: desc||'', url:'#' });
+  saveState();
+  document.getElementById('matName').value = '';
+  document.getElementById('matDesc').value = '';
+  const s = document.getElementById('matSuccess'); if (s) { s.style.display='block'; setTimeout(()=>s.style.display='none',2500); }
+  renderMaterialList();
+}
+
+function deleteMaterial(id) {
+  STATE.materials = STATE.materials.filter(m => m.id !== id);
+  saveState(); renderMaterialList();
+}
+
+// ─── EVENTS ──────────────────────────────────────────────
+function renderDmEvents() {
+  ['upcoming','projects','past'].forEach(type => {
+    const el = document.getElementById('dm-' + type);
+    if (!el) return;
+    const canDel = can('events_manage');
+    el.innerHTML = STATE.events[type].map(ev => `
+      <div class="ev-list-item">
+        <div><div class="ev-list-name">${ev.name}</div><div class="ev-list-date">${ev.date} · ${ev.tags.join(', ')}</div></div>
+        ${canDel ? `<button class="action-btn danger" onclick="deleteEvent('${type}',${ev.id})">Löschen</button>` : ''}
+      </div>`).join('') || '<p class="empty-state">Keine Einträge.</p>';
+  });
+}
+
+function addEvent(type) {
+  const name = document.getElementById('nEv'+type)?.value.trim();
+  const date = document.getElementById('nDt'+type)?.value.trim();
+  const desc = document.getElementById('nDs'+type)?.value.trim();
+  const tags = (document.getElementById('nTg'+type)?.value||'').split(',').map(t=>t.trim()).filter(Boolean);
+  if (!name) return;
+  STATE.events[type].push({ id: STATE.nextId++, name, date, desc, tags });
+  saveState();
+  ['nEv','nDt','nDs','nTg'].forEach(p => { const el = document.getElementById(p+type); if(el) el.value=''; });
+  renderDmEvents();
+}
+
+function deleteEvent(type, id) {
+  STATE.events[type] = STATE.events[type].filter(e => e.id !== id);
+  saveState(); renderDmEvents();
+}
+
+// ─── GALLERY ─────────────────────────────────────────────
+function uploadImages(e) {
+  [...e.target.files].forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      STATE.gallery.push({ id: STATE.nextId++, src: ev.target.result, caption: file.name });
+      saveState(); renderGalManage();
+    };
+    reader.readAsDataURL(file);
+  });
+  e.target.value = '';
+}
+
+function renderGalManage() {
+  const el = document.getElementById('gal-manage-grid');
+  if (!el) return;
+  el.innerHTML = STATE.gallery.map(img => `
+    <div class="gal-manage-item">
+      <img src="${img.src}" alt="" />
+      <div class="gal-manage-overlay">
+        <button class="gal-del-btn" onclick="deleteGalleryImg(${img.id})">Löschen</button>
+      </div>
+    </div>`).join('') || '<p class="empty-state" style="grid-column:1/-1">Noch keine Bilder.</p>';
+}
+
+function deleteGalleryImg(id) {
+  STATE.gallery = STATE.gallery.filter(g => g.id !== id);
+  saveState(); renderGalManage();
+}
+
+// ─── USERS ────────────────────────────────────────────────
+function renderUserTable() {
+  const tbody = document.getElementById('user-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = STATE.users.map((u, i) => `
+    <tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td>${u.username}</td>
+      <td><span class="role-badge ${u.role}" style="font-size:0.64rem">${ROLE_LABELS[u.role]}</span></td>
+      <td>
+        <button class="action-btn" onclick="openEditModal(${u.id})">Bearbeiten</button>
+        ${u.username !== currentUser?.username
+          ? `<button class="action-btn danger" onclick="deleteUser(${u.id})">Löschen</button>`
+          : '<span style="font-size:0.7rem;color:var(--muted);margin-left:0.3rem">(du)</span>'}
+      </td>
+    </tr>`).join('');
+}
+
+function addUser() {
+  const username = document.getElementById('newUsername')?.value.trim();
+  const password = document.getElementById('newPassword')?.value;
+  const role     = document.getElementById('newRole')?.value;
+  if (!username || !password) return;
+  if (STATE.users.find(u => u.username === username)) { alert('Benutzername bereits vergeben!'); return; }
+  STATE.users.push({ id: STATE.nextId++, username, password, role });
+  saveState();
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newPassword').value = '';
+  const s = document.getElementById('addUserSuccess'); if (s) { s.style.display='block'; setTimeout(()=>s.style.display='none',2500); }
+  renderUserTable();
+}
+
+function deleteUser(id) {
+  STATE.users = STATE.users.filter(u => u.id !== id);
+  saveState(); renderUserTable();
+}
+
+function openEditModal(id) {
+  const u = STATE.users.find(x => x.id === id);
+  if (!u) return;
+  editingUserId = id;
+  document.getElementById('editUsername').value = u.username;
+  document.getElementById('editPassword').value = '';
+  document.getElementById('editRole').value = u.role;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').classList.remove('open');
+  editingUserId = null;
+}
+
+function saveEditUser() {
+  const u = STATE.users.find(x => x.id === editingUserId);
+  if (!u) return;
+  const name = document.getElementById('editUsername').value.trim();
+  const pass = document.getElementById('editPassword').value;
+  const role = document.getElementById('editRole').value;
+  if (!name) return;
+  if (STATE.users.find(x => x.username === name && x.id !== editingUserId)) { alert('Benutzername bereits vergeben!'); return; }
+  u.username = name; if (pass) u.password = pass; u.role = role;
+  saveState(); closeEditModal();
+  const s = document.getElementById('userSuccess'); if (s) { s.style.display='block'; setTimeout(()=>s.style.display='none',2500); }
+  renderUserTable();
+}
+
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+</script>
+</body>
+</html>
