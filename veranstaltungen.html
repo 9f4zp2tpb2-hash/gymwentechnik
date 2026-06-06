@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Veranstaltungen – GymWenTechnik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
+      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; pointer-events: none; }
+    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+    #page-hero { min-height: 60vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 5rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(176,28,117,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
+    .beams { position: absolute; inset: 0; pointer-events: none; }
+    .beam { position: absolute; top: -10%; width: 2px; height: 110vh; background: linear-gradient(180deg, rgba(30,174,149,0.22) 0%, transparent 100%); transform-origin: top center; animation: flicker 4s infinite; }
+    .beam:nth-child(1) { left: 20%; transform: rotate(-8deg); }
+    .beam:nth-child(2) { left: 50%; transform: rotate(0deg); animation-delay: 1.2s; opacity: 0.7; }
+    .beam:nth-child(3) { left: 78%; transform: rotate(7deg); animation-delay: 2.4s; }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} 75%{opacity:0.9} }
+    .hero-breadcrumb { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+    .hero-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 9rem); line-height: 0.92; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+    .hero-title .accent { color: var(--accent); }
+    .hero-title .dim { color: var(--muted); font-size: 0.55em; display: block; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    section { padding: 7rem 3rem; }
+    .section-label { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4.5rem); color: var(--white); line-height: 1; margin-bottom: 1.5rem; }
+    .divider { width: 60px; height: 2px; background: var(--accent); margin-bottom: 3rem; }
+
+    .subsection-wrap { margin-bottom: 4.5rem; }
+    .subsection-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2rem; }
+    .subsection-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); }
+    .subsection-line { flex: 1; height: 1px; background: var(--border); }
+    .subsection-count { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+
+    .ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; max-width: 1200px; }
+    .ev-card { background: var(--mid); padding: 2.5rem; border-bottom: 3px solid transparent; transition: border-color 0.25s, background 0.25s; }
+    .ev-card:hover { border-bottom-color: var(--accent); background: #282838; }
+    .ev-card.upcoming { border-left: 3px solid var(--accent); }
+    .ev-card.project  { border-left: 3px solid var(--accent2); }
+    .ev-date { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .ev-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--white); margin-bottom: 0.5rem; }
+    .ev-desc { font-size: 0.9rem; color: var(--muted); }
+    .ev-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.2rem; }
+    .tag { font-size: 0.68rem; padding: 0.3rem 0.8rem; border: 1px solid var(--border); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    .status-badge { display: inline-flex; align-items: center; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.7rem; margin-bottom: 0.8rem; }
+    .status-badge.upcoming { background: rgba(30,174,149,0.12);  color: var(--accent);  border: 1px solid rgba(30,174,149,0.3); }
+    .status-badge.running  { background: rgba(176,28,117,0.12);  color: var(--accent2); border: 1px solid rgba(176,28,117,0.3); }
+    .status-badge.done     { background: rgba(136,136,160,0.1);  color: var(--muted);   border: 1px solid var(--border); }
+    .empty-state { color: var(--muted); font-size: 0.9rem; padding: 2rem 0; }
+
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #page-hero { padding: 0 1.5rem 4rem; min-height: 50vh; }
+      section { padding: 5rem 1.5rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html" class="active">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<section id="page-hero">
+  <div class="hero-bg"></div>
+  <div class="beams"><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
+  <div class="hero-breadcrumb"><a href="https://gymwentechnik.de">Startseite</a> &nbsp;/&nbsp; Veranstaltungen</div>
+  <h1 class="hero-title">Alle<br><span class="accent">Veranstaltungen</span><span class="dim">Was wir machen</span></h1>
+</section>
+
+<section style="background: var(--black);">
+  <div class="section-label">Übersicht</div>
+  <h2 class="section-title">Veranstaltungen & Projekte</h2>
+  <div class="divider"></div>
+
+  <div class="subsection-wrap reveal">
+    <div class="subsection-header">
+      <div class="subsection-title">Anstehende Veranstaltungen</div>
+      <div class="subsection-line"></div>
+      <div class="subsection-count" id="count-upcoming">Lade…</div>
+    </div>
+    <div class="ev-grid" id="upcoming-grid"><p class="empty-state">Lade…</p></div>
+  </div>
+
+  <div class="subsection-wrap reveal">
+    <div class="subsection-header">
+      <div class="subsection-title">Laufende Projekte</div>
+      <div class="subsection-line"></div>
+      <div class="subsection-count" id="count-projects">Lade…</div>
+    </div>
+    <div class="ev-grid" id="projects-grid"><p class="empty-state">Lade…</p></div>
+  </div>
+
+  <div class="subsection-wrap reveal">
+    <div class="subsection-header">
+      <div class="subsection-title">Vergangene Veranstaltungen</div>
+      <div class="subsection-line"></div>
+      <div class="subsection-count" id="count-past">Lade…</div>
+    </div>
+    <div class="ev-grid" id="past-grid"><p class="empty-state">Lade…</p></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2025 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-text">Made with ♥ backstage</div>
+</footer>
+
+<script>
+  var cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = (e.clientX - 6) + 'px';
+    cursor.style.top  = (e.clientY - 6) + 'px';
+  });
+
+  var menuBtn    = document.getElementById('menuBtn');
+  var closeBtn   = document.getElementById('closeMenu');
+  var mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', function() { mobileMenu.classList.add('open'); });
+  closeBtn.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  mobileMenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  });
+
+  var revObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function(el) { revObs.observe(el); });
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
+  authDomain: "gwt-database.firebaseapp.com",
+  projectId: "gwt-database",
+  storageBucket: "gwt-database.firebasestorage.app",
+  messagingSenderId: "410076918223",
+  appId: "1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
+});
+const db = getFirestore(app);
+
+const statusLabels = { upcoming: 'Anstehend', running: 'Läuft', done: 'Abgeschlossen' };
+
+async function renderGrid(gridId, countId, colName, statusType) {
+  const el = document.getElementById(gridId);
+  const ct = document.getElementById(countId);
+  try {
+    const snap  = await getDocs(collection(db, colName));
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    ct.textContent = items.length + (items.length === 1 ? ' Eintrag' : ' Einträge');
+    el.innerHTML = items.length
+      ? items.map(ev => `
+          <div class="ev-card ${statusType === 'upcoming' ? 'upcoming' : statusType === 'running' ? 'project' : ''}">
+            <div class="status-badge ${statusType}">${statusLabels[statusType]}</div>
+            <div class="ev-date">${ev.date || ''}</div>
+            <div class="ev-name">${ev.name}</div>
+            <div class="ev-desc">${ev.desc || ''}</div>
+            <div class="ev-tags">${(ev.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+          </div>`).join('')
+      : '<p class="empty-state">Keine Einträge vorhanden.</p>';
+  } catch(e) {
+    ct.textContent = '';
+    el.innerHTML = '<p class="empty-state">Fehler beim Laden.</p>';
+  }
+}
+
+renderGrid('upcoming-grid', 'count-upcoming', 'events_upcoming', 'upcoming');
+renderGrid('projects-grid', 'count-projects', 'events_projects', 'running');
+renderGrid('past-grid',     'count-past',     'events_past',     'done');
+</script>
+</body>
+</html>
