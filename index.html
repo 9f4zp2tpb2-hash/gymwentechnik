@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GymWenTechnik – Bühnentechnik am Gymnasium Wendelstein</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
+      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* HAMBURGER */
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; transition: all 0.3s; pointer-events: none; }
+
+    /* MOBILE MENU */
+    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+    /* HERO */
+    #hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 5rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(176,28,117,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
+    .beams { position: absolute; inset: 0; pointer-events: none; }
+    .beam { position: absolute; top: -10%; width: 2px; height: 110vh; background: linear-gradient(180deg, rgba(30,174,149,0.22) 0%, transparent 100%); transform-origin: top center; animation: flicker 4s infinite; }
+    .beam:nth-child(1) { left: 20%; transform: rotate(-8deg); }
+    .beam:nth-child(2) { left: 50%; transform: rotate(0deg); animation-delay: 1.2s; opacity: 0.7; }
+    .beam:nth-child(3) { left: 78%; transform: rotate(7deg); animation-delay: 2.4s; }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} 75%{opacity:0.9} }
+    .hero-tag { display: inline-block; font-size: 0.72rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.2s forwards; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 9rem); line-height: 0.92; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+    .hero-title .accent { color: var(--accent); }
+    .hero-title .dim { color: var(--muted); font-size: 0.55em; display: block; }
+    .hero-sub { max-width: 480px; margin-top: 2rem; color: var(--muted); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
+    .hero-cta { margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+    .btn { padding: 0.75rem 2rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border: 1px solid var(--accent); color: var(--accent); background: transparent; transition: all 0.25s; }
+    .btn:hover { background: var(--accent); color: var(--white); }
+    .btn.filled { background: var(--accent); color: var(--white); }
+    .btn.filled:hover { background: transparent; color: var(--accent); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* SECTIONS */
+    section { padding: 7rem 3rem; }
+    .section-label { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4.5rem); color: var(--white); line-height: 1; margin-bottom: 1.5rem; }
+    .section-head { display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; }
+    .divider { width: 60px; height: 2px; background: var(--accent); flex-shrink: 0; }
+    .section-link { font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
+    .section-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ÜBER */
+    #ueber { background: var(--dark); }
+    .ueber-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; max-width: 1100px; }
+    .ueber-text p { margin-bottom: 1.2rem; color: var(--text); }
+    .spezi-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--mid); border: 1px solid var(--border); padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--muted); margin-top: 1rem; }
+    .spezi-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .stat { background: var(--mid); padding: 2rem; border-left: 3px solid var(--accent); }
+    .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
+
+    /* VERANSTALTUNGEN */
+    #veranstaltungen { background: var(--black); }
+    .ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; max-width: 1200px; margin-bottom: 4rem; }
+    .ev-card { background: var(--mid); padding: 2.5rem; border-bottom: 3px solid transparent; transition: border-color 0.25s, background 0.25s; }
+    .ev-card:hover { border-bottom-color: var(--accent); background: #282838; }
+    .ev-card.upcoming { border-left: 3px solid var(--accent); }
+    .ev-card.project  { border-left: 3px solid var(--accent2); }
+    .ev-date { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .ev-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--white); margin-bottom: 0.5rem; }
+    .ev-desc { font-size: 0.9rem; color: var(--muted); }
+    .ev-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.2rem; }
+    .tag { font-size: 0.68rem; padding: 0.3rem 0.8rem; border: 1px solid var(--border); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    .status-badge { display: inline-flex; align-items: center; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.7rem; margin-bottom: 0.8rem; }
+    .status-badge.upcoming { background: rgba(30,174,149,0.12);  color: var(--accent);  border: 1px solid rgba(30,174,149,0.3); }
+    .status-badge.running  { background: rgba(176,28,117,0.12);  color: var(--accent2); border: 1px solid rgba(176,28,117,0.3); }
+    .status-badge.done     { background: rgba(136,136,160,0.1);  color: var(--muted);   border: 1px solid var(--border); }
+    .subsection-label { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+    .empty-state { color: var(--muted); font-size: 0.9rem; padding: 2rem 0; }
+
+    /* GALERIE */
+    #galerie { background: var(--dark); }
+    .gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px; max-width: 1200px; }
+    .gal-img { aspect-ratio: 4/3; overflow: hidden; background: var(--mid); }
+    .gal-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+    .gal-img:hover img { transform: scale(1.04); }
+
+    /* KONTAKT */
+    #kontakt { background: var(--black); }
+    .kontakt-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; max-width: 1000px; }
+    .kontakt-info p { color: var(--muted); margin-bottom: 2rem; }
+    .kontakt-detail { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem; }
+    .kontakt-icon { width: 40px; height: 40px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--accent); }
+    .kontakt-icon svg { width: 16px; height: 16px; }
+    .kontakt-detail-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
+    .kontakt-detail-text { font-size: 0.9rem; }
+    .kontakt-form { display: flex; flex-direction: column; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .form-group input, .form-group textarea { background: var(--mid); border: 1px solid var(--border); color: var(--text); padding: 0.85rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { min-height: 120px; }
+    .form-submit { padding: 0.85rem 2rem; background: var(--accent); color: var(--white); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; align-self: flex-start; }
+    .form-submit:hover { background: var(--accent2); }
+
+    /* FOOTER */
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #hero { padding: 0 1.5rem 4rem; }
+      section { padding: 5rem 1.5rem; }
+      .ueber-grid, .kontakt-layout { grid-template-columns: 1fr; gap: 3rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="beams"><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
+  <span class="hero-tag">Gymnasium Wendelstein · Bühnentechnik</span>
+  <h1 class="hero-title">GymWen<br><span class="accent">Technik</span><span class="dim">Hinter den Kulissen</span></h1>
+  <p class="hero-sub">Wir sorgen dafür, dass jede Aufführung zum Erlebnis wird – Licht, Ton, Bühne. Und danach gibt's Spezi.</p>
+  <div class="hero-cta">
+    <a href="https://gymwentechnik.de/ueber.html" class="btn filled">Mehr erfahren</a>
+    <a href="https://gymwentechnik.de/kontakt.html" class="btn">Kontakt</a>
+  </div>
+</section>
+
+<!-- ÜBER UNS -->
+<section id="ueber">
+  <div class="section-label">Wer wir sind</div>
+  <h2 class="section-title">Über uns</h2>
+  <div class="section-head">
+    <div class="divider"></div>
+    <a href="https://gymwentechnik.de/ueber.html" class="section-link">Zur Seite →</a>
+  </div>
+  <div class="ueber-grid reveal">
+    <div class="ueber-text">
+      <p>Die <strong>GymWenTechnik</strong> ist das Bühnentechnik-Team des Gymnasiums Wendelstein. Wir planen, installieren und bedienen die gesamte Technik für alle schulischen Veranstaltungen – von Konzerten und Theaterstücken bis hin zu Abschlussveranstaltungen.</p>
+      <p>Unser Team besteht aus engagierten Schülerinnen und Schülern, die sich leidenschaftlich für Licht- und Tontechnik interessieren und ihr Können bei jeder Aufführung einbringen.</p>
+      <p>Ob Beleuchtung, Ton oder Bühnenaufbau – wir sind die, die im Hintergrund arbeiten, damit das Rampenlicht die Richtigen - oder auch mal die Falschen - trifft.</p>
+      <div class="spezi-badge"><span class="dot"></span> Offizielles Lieblingsgetränk: Paulaner Spezi</div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-num">10+</div><div class="stat-label">Aktive Mitglieder</div></div>
+      <div class="stat"><div class="stat-num">1–9</div><div class="stat-label">Jahre Erfahrung</div></div>
+      <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Veranstaltungen</div></div>
+      <div class="stat"><div class="stat-num">🥤</div><div class="stat-label">Spezi-Flaschen leer</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- VERANSTALTUNGEN -->
+<section id="veranstaltungen">
+  <div class="section-label">Was wir machen</div>
+  <h2 class="section-title">Alle Veranstaltungen</h2>
+  <div class="section-head">
+    <div class="divider"></div>
+    <a href="https://gymwentechnik.de/veranstaltungen.html" class="section-link">Alle anzeigen →</a>
+  </div>
+  <div class="reveal">
+    <div class="subsection-label">Anstehende Veranstaltungen</div>
+    <div class="ev-grid" id="upcoming-grid"><p class="empty-state">Lade…</p></div>
+    <div class="subsection-label">Laufende Veranstaltungen</div>
+    <div class="ev-grid" id="projects-grid"><p class="empty-state">Lade…</p></div>
+    <div class="subsection-label">Vergangene Veranstaltungen</div>
+    <div class="ev-grid" id="past-grid"><p class="empty-state">Lade…</p></div>
+  </div>
+</section>
+
+<!-- GALERIE -->
+<section id="galerie">
+  <div class="section-label">Einblicke</div>
+  <h2 class="section-title">Galerie</h2>
+  <div class="section-head">
+    <div class="divider"></div>
+    <a href="https://gymwentechnik.de/galerie.html" class="section-link">Zur Galerie →</a>
+  </div>
+  <div class="gal-grid reveal" id="gal-grid"><p class="empty-state">Lade…</p></div>
+</section>
+
+<!-- KONTAKT -->
+<section id="kontakt">
+  <div class="section-label">Schreib uns</div>
+  <h2 class="section-title">Kontakt</h2>
+  <div class="section-head">
+    <div class="divider"></div>
+    <a href="https://gymwentechnik.de/kontakt.html" class="section-link">Zur Seite →</a>
+  </div>
+  <div class="kontakt-layout reveal">
+    <div class="kontakt-info">
+      <p>Hast du Fragen zu einer Veranstaltung oder möchtest du Teil unseres Teams werden? Wir freuen uns über jede Nachricht.</p>
+      <div class="kontakt-detail">
+        <div class="kontakt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
+        <div>
+          <div class="kontakt-detail-label">Adresse</div>
+          <div class="kontakt-detail-text">Bühnentechnik Gymnasium Wendelstein<br>In der Gibitzen 29<br>90530 Wendelstein</div>
+        </div>
+      </div>
+      <div class="kontakt-detail">
+        <div class="kontakt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div>
+          <div class="kontakt-detail-label">E-Mail</div>
+          <div class="kontakt-detail-text">support@gymwentechnik.de</div>
+        </div>
+      </div>
+    </div>
+    <div class="kontakt-form">
+      <div class="form-group"><label>Name</label><input type="text" id="ixName" placeholder="Dein Name" /></div>
+      <div class="form-group"><label>E-Mail</label><input type="email" id="ixEmail" placeholder="deine@email.de" /></div>
+      <div class="form-group"><label>Betreff</label><input type="text" id="ixSubject" placeholder="Worum geht es?" /></div>
+      <div class="form-group"><label>Nachricht</label><textarea id="ixMessage" placeholder="Deine Nachricht…"></textarea></div>
+      <button class="form-submit" id="contactBtn">Nachricht senden</button>
+      <p id="contactSuccess" style="display:none;font-size:0.85rem;color:var(--accent);margin-top:0.5rem;">✓ Nachricht gesendet!</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2025 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-text">Made with ♥ backstage</div>
+</footer>
+
+<!-- REGULAR JS: burger menu, cursor, reveal – runs immediately, no module needed -->
+<script>
+  // Cursor
+  var cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = (e.clientX - 6) + 'px';
+    cursor.style.top  = (e.clientY - 6) + 'px';
+  });
+
+  // Mobile menu
+  var menuBtn    = document.getElementById('menuBtn');
+  var closeBtn   = document.getElementById('closeMenu');
+  var mobileMenu = document.getElementById('mobileMenu');
+
+  menuBtn.addEventListener('click', function() {
+    mobileMenu.classList.add('open');
+  });
+  closeBtn.addEventListener('click', function() {
+    mobileMenu.classList.remove('open');
+  });
+  mobileMenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      mobileMenu.classList.remove('open');
+    });
+  });
+
+  // Scroll reveal
+  var revEls = document.querySelectorAll('.reveal');
+  var revObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.08 });
+  revEls.forEach(function(el) { revObs.observe(el); });
+</script>
+
+<!-- FIREBASE MODULE: loads async, doesn't block menu -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
+  authDomain: "gwt-database.firebaseapp.com",
+  projectId: "gwt-database",
+  storageBucket: "gwt-database.firebasestorage.app",
+  messagingSenderId: "410076918223",
+  appId: "1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
+});
+const db = getFirestore(app);
+
+const statusLabels = { upcoming: 'Anstehend', running: 'Läuft', done: 'Abgeschlossen' };
+const MONATE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+function parseDmy(s) {
+  if (!s) return null;
+  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s.trim());
+  if (!m) return null;
+  const d = new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
+  d.setHours(0,0,0,0);
+  return d;
+}
+function formatLong(d) { return d.getDate() + '. ' + MONATE[d.getMonth()] + ' ' + d.getFullYear(); }
+function evDateLabel(ev) {
+  if (ev.dateMode === 'soon') return 'Bald';
+  const start = parseDmy(ev.startDate);
+  if (!start) return ev.startDate || '';
+  if (ev.dateMode === 'range') {
+    const end = parseDmy(ev.endDate);
+    if (end) return formatLong(start) + ' – ' + formatLong(end);
+  }
+  return formatLong(start);
+}
+function evStatus(ev) {
+  if (ev.dateMode === 'soon') return 'upcoming';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = parseDmy(ev.startDate);
+  const end = ev.dateMode === 'range' ? parseDmy(ev.endDate) : start;
+  if (!start) return 'upcoming';
+  if (today < start) return 'upcoming';
+  if (end && today > end) return 'done';
+  if (end && today >= start && today <= end) return 'running';
+  return today.getTime() === start.getTime() ? 'running' : 'done';
+}
+function evSortKey(ev) {
+  if (ev.dateMode === 'soon') return -Infinity;
+  const start = parseDmy(ev.startDate);
+  return start ? start.getTime() : Infinity;
+}
+function cardHtml(ev, statusType) {
+  const cls = statusType === 'upcoming' ? 'upcoming' : statusType === 'running' ? 'project' : '';
+  return `
+    <div class="ev-card ${cls}">
+      <div class="status-badge ${statusType}">${statusLabels[statusType]}</div>
+      <div class="ev-date">${evDateLabel(ev)}</div>
+      <div class="ev-name">${ev.name}</div>
+      <div class="ev-desc">${ev.desc || ''}</div>
+      <div class="ev-tags">${(ev.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>`;
+}
+
+async function loadEvents() {
+  const grids = {
+    upcoming: document.getElementById('upcoming-grid'),
+    running:  document.getElementById('projects-grid'),
+    done:     document.getElementById('past-grid')
+  };
+  try {
+    const snap = await getDocs(collection(db, 'events'));
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    items.sort((a, b) => evSortKey(a) - evSortKey(b));
+
+    const buckets = { upcoming: [], running: [], done: [] };
+    items.forEach(ev => buckets[evStatus(ev)].push(ev));
+    buckets.done.sort((a, b) => evSortKey(b) - evSortKey(a));
+
+    Object.keys(grids).forEach(key => {
+      const list = buckets[key];
+      grids[key].innerHTML = list.length ? list.map(ev => cardHtml(ev, key)).join('') : '<p class="empty-state">Keine Einträge vorhanden.</p>';
+    });
+  } catch (e) {
+    Object.values(grids).forEach(el => { el.innerHTML = '<p class="empty-state">Fehler beim Laden.</p>'; });
+  }
+}
+
+async function loadGallery() {
+  const grid = document.getElementById('gal-grid');
+  try {
+    const snap  = await getDocs(collection(db, 'gallery'));
+    const items = snap.docs.map(d => d.data()).slice(0, 8);
+    grid.innerHTML = items.length
+      ? items.map(img => `<div class="gal-img"><img src="${img.url}" alt="${img.caption || ''}" loading="lazy" /></div>`).join('')
+      : '<p class="empty-state">Noch keine Fotos – werden über den internen Bereich hochgeladen.</p>';
+  } catch(e) {
+    grid.innerHTML = '<p class="empty-state">Fehler beim Laden.</p>';
+  }
+}
+
+// Kontaktformular (Startseite) – speichert in Firestore, kein Mailversand
+document.getElementById('contactBtn').addEventListener('click', async function() {
+  const name = document.getElementById('ixName').value.trim();
+  const email = document.getElementById('ixEmail').value.trim();
+  const subject = document.getElementById('ixSubject').value.trim();
+  const message = document.getElementById('ixMessage').value.trim();
+  if (!name || !email || !message) { alert('Bitte fülle alle Pflichtfelder aus.'); return; }
+
+  const btn = this;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  try {
+    await addDoc(collection(db, 'contact_messages'), {
+      firstName: name,
+      lastName: '',
+      email: email,
+      subject: subject,
+      message: message,
+      createdAt: serverTimestamp(),
+      read: false
+    });
+    document.getElementById('contactSuccess').style.display = 'block';
+  } catch (e) {
+    alert('Senden fehlgeschlagen. Bitte versuch es später erneut oder schreib uns direkt per E-Mail.');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+});
+
+loadEvents();
+loadGallery();
+</script>
+</body>
+</html>
