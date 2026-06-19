@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /intern.html
+
+Sitemap: https://gymwentechnik.de/sitemap.xml
