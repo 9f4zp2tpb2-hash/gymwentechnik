@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Über uns – GymWenTechnik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
+      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; pointer-events: none; }
+    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+    /* PAGE HERO */
+    #page-hero { min-height: 60vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 5rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(176,28,117,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
+    .beams { position: absolute; inset: 0; pointer-events: none; }
+    .beam { position: absolute; top: -10%; width: 2px; height: 110vh; background: linear-gradient(180deg, rgba(30,174,149,0.22) 0%, transparent 100%); transform-origin: top center; animation: flicker 4s infinite; }
+    .beam:nth-child(1) { left: 20%; transform: rotate(-8deg); }
+    .beam:nth-child(2) { left: 50%; transform: rotate(0deg); animation-delay: 1.2s; opacity: 0.7; }
+    .beam:nth-child(3) { left: 78%; transform: rotate(7deg); animation-delay: 2.4s; }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} 75%{opacity:0.9} }
+    .hero-breadcrumb { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+    .hero-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .hero-breadcrumb a:hover { text-decoration: underline; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 9rem); line-height: 0.92; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+    .hero-title .accent { color: var(--accent); }
+    .hero-title .dim { color: var(--muted); font-size: 0.55em; display: block; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* SECTIONS */
+    section { padding: 7rem 3rem; }
+    .section-label { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4.5rem); color: var(--white); line-height: 1; margin-bottom: 1.5rem; }
+    .divider { width: 60px; height: 2px; background: var(--accent); margin-bottom: 3rem; }
+    .section-head-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 2.5rem; flex-wrap: wrap; margin-bottom: 3rem; }
+    .section-head-row .divider { margin-bottom: 0; }
+    .section-accent-img { width: 220px; height: 140px; flex-shrink: 0; margin-bottom: 1.5rem; }
+    .section-accent-img.empty { display: none; }
+    @media (max-width: 768px) { .section-accent-img { display: none !important; } }
+    .img-slot-fullbleed { width: 100vw; position: relative; left: 50%; transform: translateX(-50%); aspect-ratio: 21/7; border-left: none; border-right: none; margin-top: 4rem; margin-bottom: -7rem; }
+    .img-slot-fullbleed.empty { display: none; }
+    @media (max-width: 900px) { .img-slot-fullbleed { aspect-ratio: 4/3; } }
+
+    /* ÜBER */
+    #ueber { background: var(--dark); }
+    .ueber-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; max-width: 1100px; }
+    .ueber-text p { margin-bottom: 1.2rem; color: var(--text); }
+    .spezi-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--mid); border: 1px solid var(--border); padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--muted); margin-top: 1rem; }
+    .spezi-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .img-slot { position: relative; background: var(--mid); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .img-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-slot.empty::before { content: '🖼️ Noch kein Bild'; }
+    .hero-img-slot { position: absolute; top: 0; right: 0; width: 45%; height: 100%; z-index: 1; overflow: hidden; border: none; }
+    .hero-img-slot img { opacity: 0.85; }
+    .hero-img-slot::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--black) 0%, rgba(44,44,58,0.5) 35%, transparent 75%), linear-gradient(180deg, transparent 55%, var(--black) 100%); }
+    .hero-img-slot.empty { display: none; background: none; }
+    .hero-img-slot.empty::before { content: ''; }
+    @media (max-width: 900px) { .hero-img-slot { display: none !important; } }
+    .ueber-img-col { display: flex; flex-direction: column; gap: 2px; }
+    .ueber-img-col .img-slot { aspect-ratio: 4/3; }
+    .img-slot-wide { width: 100%; aspect-ratio: 16/6; margin-bottom: 2.5rem; }
+    .img-slot-wide.empty { display: none; }
+    .stat { background: var(--mid); padding: 2rem; border-left: 3px solid var(--accent); }
+    .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
+
+    /* WERTE */
+    #werte { background: var(--black); }
+    .werte-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2px; max-width: 1200px; }
+    .wert-card { background: var(--mid); padding: 2.5rem; border-bottom: 3px solid transparent; transition: border-color 0.25s, background 0.25s; }
+    .wert-card:hover { border-bottom-color: var(--accent); background: #282838; }
+    .wert-num { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--border); line-height: 1; margin-bottom: 1rem; }
+    .wert-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--white); margin-bottom: 0.5rem; }
+    .wert-desc { font-size: 0.9rem; color: var(--muted); }
+
+    /* TECHNIK */
+    #technik { background: var(--dark); }
+    .technik-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2px; max-width: 1200px; }
+    .technik-card { background: var(--mid); padding: 2.5rem; position: relative; overflow: hidden; transition: background 0.25s; }
+    .technik-card:hover { background: #282838; }
+    .technik-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; }
+    .technik-card:hover::before { transform: scaleX(1); }
+    .technik-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--white); margin-bottom: 0.6rem; }
+    .technik-desc { font-size: 0.88rem; color: var(--muted); }
+    .technik-tags { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 1.2rem; }
+    .tag { font-size: 0.65rem; padding: 0.25rem 0.7rem; border: 1px solid var(--border); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+    /* FOOTER */
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+    .footer-legal { display: flex; gap: 1.5rem; }
+    .footer-legal a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-legal a:hover { color: var(--accent); }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #page-hero { padding: 0 1.5rem 4rem; min-height: 50vh; }
+      section { padding: 5rem 1.5rem; }
+      .ueber-grid { grid-template-columns: 1fr; gap: 3rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+    /* Easter Egg: TicTacToe */
+    .ttt-overlay { display: none; position: fixed; inset: 0; background: rgba(20,20,28,0.92); z-index: 500; align-items: center; justify-content: center; padding: 1.5rem; }
+    .ttt-overlay.open { display: flex; }
+    .ttt-box { background: var(--dark); border: 1px solid var(--border); padding: 2.5rem; max-width: 380px; width: 100%; text-align: center; position: relative; animation: tttPop 0.3s ease; }
+    @keyframes tttPop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+    .ttt-close { position: absolute; top: 0.8rem; right: 1rem; background: none; border: none; color: var(--muted); font-size: 1.6rem; cursor: pointer; line-height: 1; }
+    .ttt-close:hover { color: var(--accent2); }
+    .ttt-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--white); margin-bottom: 0.3rem; }
+    .ttt-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.8rem; }
+    .ttt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 260px; margin: 0 auto 1.5rem; }
+    .ttt-cell { aspect-ratio: 1; background: var(--mid); border: 1px solid var(--border); font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; }
+    .ttt-cell:hover:not(.filled) { background: #282838; }
+    .ttt-cell.filled { cursor: default; }
+    .ttt-cell.o { color: var(--accent2); }
+    .ttt-status { font-size: 0.95rem; color: var(--text); margin-bottom: 1.2rem; min-height: 1.4rem; }
+    .ttt-restart { background: var(--accent2); color: var(--white); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.7rem 1.5rem; cursor: pointer; transition: opacity 0.2s; }
+    .ttt-restart:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html" class="active">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<!-- PAGE HERO -->
+<section id="page-hero">
+  <div class="hero-bg"></div>
+  <div class="beams"><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
+  <div class="img-slot hero-img-slot empty" data-img-slot="ueber:hero"></div>
+  <div class="hero-breadcrumb"><a href="https://gymwentechnik.de">Startseite</a> &nbsp;/&nbsp; Über uns</div>
+  <h1 class="hero-title">Über<br><span class="accent">Uns</span><span class="dim">Das Team hinter der Bühne</span></h1>
+</section>
+
+<!-- ÜBER UNS -->
+<section id="ueber">
+  <div class="section-label">Wer wir sind</div>
+  <h2 class="section-title">GymWenTechnik</h2>
+  <div class="divider"></div>
+  <div class="ueber-grid reveal">
+    <div class="ueber-text">
+      <p>Die <strong>GymWenTechnik</strong> ist das Bühnentechnik-Team des Gymnasiums Wendelstein. Wir planen, installieren und bedienen die gesamte Technik für alle schulischen Veranstaltungen – von Konzerten und Theaterstücken bis hin zu Abschlussveranstaltungen.</p>
+      <p>Unser Team besteht aus engagierten Schülerinnen und Schülern, die sich leidenschaftlich für Licht- und Tontechnik interessieren und ihr Können bei jeder Aufführung einbringen.</p>
+      <p>Ob Beleuchtung, Beschallung oder Bühnenaufbau – wir sind die, die im Hintergrund arbeiten, damit das Rampenlicht die Richtigen - oder auch mal die Falschen - trifft.</p>
+      <div class="spezi-badge"><span class="dot"></span> Offizielles Lieblingsgetränk: Paulaner Spezi</div>
+    </div>
+    <div class="ueber-img-col">
+      <div class="img-slot empty" data-img-slot="ueber:team-1"></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num">10+</div><div class="stat-label">Aktive Mitglieder</div></div>
+        <div class="stat"><div class="stat-num">1–9</div><div class="stat-label">Jahre Erfahrung</div></div>
+        <div class="stat"><div class="stat-num">5+</div><div class="stat-label">Veranstaltungen</div></div>
+        <div class="stat"><div class="stat-num" id="speziBtn" style="cursor:pointer" title="???">🥤</div><div class="stat-label">Spezi-Flaschen leer</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WERTE -->
+<section id="werte">
+  <div class="section-head-row">
+    <div>
+      <div class="section-label">Was uns antreibt</div>
+      <h2 class="section-title">Unsere Werte</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="img-slot section-accent-img empty" data-img-slot="ueber:werte-banner"></div>
+  </div>
+  <div class="werte-grid reveal">
+    <div class="wert-card">
+      <div class="wert-num">01</div>
+      <div class="wert-title">Leidenschaft</div>
+      <div class="wert-desc">Wir machen das nicht weil wir müssen – wir machen es, weil wir es lieben. Jede Veranstaltung ist eine neue Herausforderung, die wir mit Begeisterung angehen.</div>
+    </div>
+    <div class="wert-card">
+      <div class="wert-num">02</div>
+      <div class="wert-title">Teamgeist</div>
+      <div class="wert-desc">Bühnentechnik ist Teamarbeit. Nur wenn alle zusammenarbeiten – von der Lichtregie bis zum Bühnenaufbau – läuft eine Veranstaltung reibungslos.</div>
+    </div>
+    <div class="wert-card">
+      <div class="wert-num">03</div>
+      <div class="wert-title">Zuverlässigkeit</div>
+      <div class="wert-desc">Wenn die Veranstaltung beginnt, muss alles sitzen. Wir proben, planen und checken – damit auf der Bühne nichts schiefgeht.</div>
+    </div>
+    <div class="wert-card">
+      <div class="wert-num">04</div>
+      <div class="wert-title">Lernen</div>
+      <div class="wert-desc">Technik entwickelt sich weiter – und wir mit ihr. Neue Mitglieder werden von erfahrenen eingearbeitet, Wissen wird weitergegeben.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TECHNIK -->
+<section id="technik">
+  <div class="section-label">Was wir können</div>
+  <h2 class="section-title">Unsere Technik</h2>
+  <div class="divider"></div>
+  <div class="technik-grid reveal">
+    <div class="technik-card">
+      <div class="technik-title">Lichttechnik</div>
+      <div class="technik-desc">Von klassischen PAR-Scheinwerfern bis zu modernen Moving Heads – wir planen und bedienen die gesamte Bühnenbeleuchtung für jeden Anlass.</div>
+      <div class="technik-tags"><span class="tag">DMX</span><span class="tag">Lichtpult</span><span class="tag">Daslight 4</span><span class="tag">Scheinwerfer</span></div>
+    </div>
+    <div class="technik-card">
+      <div class="technik-title">Tontechnik</div>
+      <div class="technik-desc">Beschallung, Monitoring, Live-Mixing – wir sorgen dafür, dass jeder Ton im Raum sitzt, ob Sprache, Band oder Orchester.</div>
+      <div class="technik-tags"><span class="tag">SI Impact</span><span class="tag">XLR</span><span class="tag">Mikrofone</span><span class="tag">Boxen</span></div>
+    </div>
+    <div class="technik-card">
+      <div class="technik-title">Bühnenaufbau</div>
+      <div class="technik-desc">Aufbau und Abbau von Bühnenequipment, Traversen und Dekorationen – sicher, schnell und professionell.</div>
+      <div class="technik-tags"><span class="tag">Verkabelung</span><span class="tag">Cases</span><span class="tag">Sicherheit</span></div>
+    </div>
+    <div class="technik-card">
+      <div class="technik-title">Videotechnik</div>
+      <div class="technik-desc">Projektion und Videozuspielung für Präsentationen, Abschlussabende und besondere Veranstaltungen.</div>
+      <div class="technik-tags"><span class="tag">Beamer</span><span class="tag">Aufnahmen</span><span class="tag">Fotos</span></div>
+    </div>
+  </div>
+  <div class="img-slot img-slot-fullbleed empty" data-img-slot="ueber:werkstatt"></div>
+</section>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2026 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-legal">
+    <a href="https://gymwentechnik.de/impressum.html">Impressum</a>
+    <a href="https://gymwentechnik.de/datenschutz.html">Datenschutz</a>
+  </div>
+</footer>
+
+<script>
+  var cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = (e.clientX - 6) + 'px';
+    cursor.style.top  = (e.clientY - 6) + 'px';
+  });
+
+  var menuBtn    = document.getElementById('menuBtn');
+  var closeBtn   = document.getElementById('closeMenu');
+  var mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', function() { mobileMenu.classList.add('open'); });
+  closeBtn.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  mobileMenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  });
+
+  var revObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function(el) { revObs.observe(el); });
+</script>
+
+<!-- Easter Egg: TicTacToe gegen die KI -->
+<div class="ttt-overlay" id="tttOverlay">
+  <div class="ttt-box">
+    <button class="ttt-close" id="tttClose" aria-label="Schließen">✕</button>
+    <div class="ttt-title">🥤 Spezi-Pause</div>
+    <div class="ttt-sub">Du gegen die GymWenTechnik-KI. Viel Erfolg!</div>
+    <div class="ttt-grid" id="tttGrid"></div>
+    <div class="ttt-status" id="tttStatus">Du bist X – du startest!</div>
+    <button class="ttt-restart" id="tttRestart">Neues Spiel</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  var board = Array(9).fill(null);
+  var gameOver = false;
+  var overlay = document.getElementById('tttOverlay');
+  var grid = document.getElementById('tttGrid');
+  var statusEl = document.getElementById('tttStatus');
+  var WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+  function checkWinner(b) {
+    for (var i = 0; i < WINS.length; i++) {
+      var [a, c, d] = WINS[i];
+      if (b[a] && b[a] === b[c] && b[a] === b[d]) return b[a];
+    }
+    if (b.every(function(x) { return x; })) return 'draw';
+    return null;
+  }
+
+  function bestMove(b) {
+    // einfache KI: gewinnen > blocken > Mitte > Ecke > Rest
+    for (var i = 0; i < 9; i++) {
+      if (!b[i]) { var t = b.slice(); t[i] = 'O'; if (checkWinner(t) === 'O') return i; }
+    }
+    for (var i = 0; i < 9; i++) {
+      if (!b[i]) { var t = b.slice(); t[i] = 'X'; if (checkWinner(t) === 'X') return i; }
+    }
+    if (!b[4]) return 4;
+    var corners = [0,2,6,8].filter(function(i) { return !b[i]; });
+    if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
+    var rest = b.map(function(v,i){return i;}).filter(function(i) { return !b[i]; });
+    return rest[Math.floor(Math.random() * rest.length)];
+  }
+
+  function render() {
+    grid.innerHTML = board.map(function(v, i) {
+      return '<div class="ttt-cell' + (v ? ' filled' : '') + (v === 'O' ? ' o' : '') + '" data-i="' + i + '">' + (v || '') + '</div>';
+    }).join('');
+    grid.querySelectorAll('.ttt-cell').forEach(function(cell) {
+      cell.addEventListener('click', function() { playerMove(parseInt(cell.dataset.i)); });
+    });
+  }
+
+  function playerMove(i) {
+    if (gameOver || board[i]) return;
+    board[i] = 'X';
+    render();
+    var winner = checkWinner(board);
+    if (winner) { endGame(winner); return; }
+    statusEl.textContent = 'Die KI denkt nach…';
+    setTimeout(function() {
+      var move = bestMove(board);
+      if (move !== undefined && move !== -1 && !board[move]) board[move] = 'O';
+      render();
+      var w2 = checkWinner(board);
+      if (w2) { endGame(w2); return; }
+      statusEl.textContent = 'Du bist X – du bist dran!';
+    }, 450);
+  }
+
+  function endGame(winner) {
+    gameOver = true;
+    if (winner === 'draw') statusEl.textContent = 'Unentschieden! 🥤';
+    else if (winner === 'X') statusEl.textContent = '🎉 Du hast gewonnen!';
+    else statusEl.textContent = 'Die KI gewinnt – nächste Runde?';
+  }
+
+  function resetGame() {
+    board = Array(9).fill(null);
+    gameOver = false;
+    statusEl.textContent = 'Du bist X – du startest!';
+    render();
+  }
+
+  document.getElementById('speziBtn').addEventListener('click', function() {
+    overlay.classList.add('open');
+    resetGame();
+  });
+  document.getElementById('tttClose').addEventListener('click', function() { overlay.classList.remove('open'); });
+  document.getElementById('tttRestart').addEventListener('click', resetGame);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('open'); });
+})();
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
+  authDomain: "gwt-database.firebaseapp.com",
+  projectId: "gwt-database",
+  storageBucket: "gwt-database.firebasestorage.app",
+  messagingSenderId: "410076918223",
+  appId: "1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
+});
+const db = getFirestore(app);
+
+(async function loadPageImages() {
+  const slots = document.querySelectorAll('[data-img-slot]');
+  if (!slots.length) return;
+  try {
+    const snap = await getDocs(collection(db, 'page_images'));
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data(); });
+    slots.forEach(el => {
+      const data = map[el.dataset.imgSlot];
+      if (data && data.url) {
+        el.classList.remove('empty');
+        el.innerHTML = '<img src="' + data.url + '" alt="' + (data.alt || '') + '" loading="lazy"/>';
+      }
+    });
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
