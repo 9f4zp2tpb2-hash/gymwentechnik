@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gwtChat – GymWenTechnik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
+      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; min-height: 100vh; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; pointer-events: none; }
+    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+    #page-hero { min-height: 38vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 3.5rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(176,28,117,0.1) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(30,174,149,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
+    .hero-breadcrumb { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+    .hero-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.6rem, 6vw, 4.6rem); line-height: 0.98; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+    .hero-title .accent { color: var(--accent2); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    section { padding: 4rem 3rem 6rem; }
+
+    .login-box { max-width: 440px; background: var(--dark); border: 1px solid var(--border); padding: 2.5rem; }
+    .login-box h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--white); margin-bottom: 0.6rem; }
+    .login-box p { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.8rem; }
+    .field-group { margin-bottom: 1.2rem; }
+    .field-group label { display: block; font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+    .field-group input { width: 100%; background: var(--mid); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.92rem; padding: 0.75rem 0.9rem; }
+    .field-group input:focus { outline: none; border-color: var(--accent2); }
+    .login-submit { width: 100%; background: var(--accent2); color: var(--white); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.9rem; cursor: pointer; transition: opacity 0.2s; }
+    .login-submit:hover { opacity: 0.85; }
+    .login-error { display: none; margin-top: 1rem; padding: 0.7rem 0.9rem; background: rgba(176,28,117,0.1); border-left: 3px solid var(--accent2); font-size: 0.85rem; color: var(--accent2); }
+    .login-hint { margin-top: 1.5rem; font-size: 0.8rem; color: var(--muted); }
+    .login-hint a { color: var(--accent); text-decoration: none; }
+
+    #chatView { display: none; max-width: 760px; }
+    .chat-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; flex-wrap: wrap; gap: 0.6rem; }
+    .chat-top-case { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); }
+    .chat-logout { background: none; border: none; color: var(--muted); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; }
+    .chat-logout:hover { color: var(--accent2); }
+    .chat-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    .gwt-thread { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; min-height: 200px; }
+    .gwt-bubble { padding: 1rem 1.3rem; border-radius: 4px 14px 14px 14px; max-width: 85%; align-self: flex-start; background: var(--mid); }
+    .gwt-bubble.mine { align-self: flex-end; background: #16443c; border-radius: 14px 4px 14px 14px; }
+    .gwt-bubble-head { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; margin-bottom: 0.4rem; flex-wrap: wrap; }
+    .gwt-bubble-from { font-size: 0.82rem; color: var(--white); }
+    .gwt-bubble.mine .gwt-bubble-from { color: var(--accent); }
+    .gwt-bubble-time { font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+    .gwt-bubble-text { font-size: 0.9rem; color: var(--text); white-space: pre-wrap; }
+    .gwt-reply-box textarea { width: 100%; background: var(--mid); border: 1px solid var(--border); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; padding: 0.9rem; min-height: 90px; resize: vertical; margin-bottom: 0.8rem; }
+    .gwt-reply-box button { background: var(--accent2); color: var(--white); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.8rem 1.6rem; cursor: pointer; transition: opacity 0.2s, transform 0.15s; position: relative; }
+    .gwt-reply-box button:active { transform: scale(0.96); }
+    .gwt-reply-box button.sending { opacity: 0.6; cursor: default; }
+    .gwt-reply-box button.sending::after { content: ''; display: inline-block; width: 12px; height: 12px; margin-left: 0.5rem; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: tttSpin 0.6s linear infinite; vertical-align: middle; }
+    @keyframes tttSpin { to { transform: rotate(360deg); } }
+    .gwt-bubble { animation: bubbleIn 0.28s ease; }
+    @keyframes bubbleIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .gwt-skel { background: var(--mid); border-radius: 4px 14px 14px 14px; height: 56px; max-width: 70%; margin-bottom: 1rem; position: relative; overflow: hidden; }
+    .gwt-skel::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); animation: shimmer 1.3s infinite; }
+    @keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+    .gwt-reply-box button:hover { opacity: 0.85; }
+    .gwt-empty { font-size: 0.9rem; color: var(--muted); padding: 1.5rem 0; }
+
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+    .footer-legal { display: flex; gap: 1.5rem; }
+    .footer-legal a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-legal a:hover { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #page-hero { padding: 0 1.5rem 3rem; min-height: 32vh; }
+      section { padding: 3rem 1.5rem 4rem; }
+      footer { flex-direction: column; text-align: center; }
+      .login-box { padding: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/news.html">News</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/news.html">News</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<section id="page-hero">
+  <div class="hero-bg"></div>
+  <div class="hero-breadcrumb"><a href="https://gymwentechnik.de">Startseite</a> &nbsp;/&nbsp; gwtChat</div>
+  <h1 class="hero-title">gwt<span class="accent">Chat</span></h1>
+</section>
+
+<section style="background: var(--black);">
+
+  <div class="login-box" id="loginBox">
+    <h2>Anmelden</h2>
+    <p>Gib deine Vorgangsnummer und deinen Nachnamen ein, um deinen Chat mit der GymWenTechnik zu öffnen.</p>
+    <div class="field-group">
+      <label>Vorgangsnummer</label>
+      <input type="text" id="loginCase" placeholder="z.B. V091245" />
+    </div>
+    <div class="field-group">
+      <label>Nachname</label>
+      <input type="text" id="loginLast" placeholder="Mustermann" />
+    </div>
+    <button class="login-submit" id="loginBtn">Chat öffnen</button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-hint">Noch keine Vorgangsnummer? <a href="https://gymwentechnik.de/kontakt.html">Kontaktformular ausfüllen →</a></div>
+  </div>
+
+  <div id="chatView">
+    <div class="chat-top">
+      <div class="chat-top-case" id="chatCaseTitle">Vorgang</div>
+      <button class="chat-logout" id="logoutBtn">Abmelden</button>
+    </div>
+    <p class="chat-sub">Hier siehst du den Verlauf deiner Anfrage. Antworten der GymWenTechnik erscheinen automatisch hier.</p>
+    <div class="gwt-thread" id="gwtThread"></div>
+    <div class="gwt-reply-box">
+      <textarea id="gwtReplyText" placeholder="Nachricht schreiben…"></textarea>
+      <button id="gwtReplySend">Senden</button>
+    </div>
+  </div>
+
+</section>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2026 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-legal">
+    <a href="https://gymwentechnik.de/impressum.html">Impressum</a>
+    <a href="https://gymwentechnik.de/datenschutz.html">Datenschutz</a>
+  </div>
+</footer>
+
+<script>
+  var cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = (e.clientX - 6) + 'px';
+    cursor.style.top  = (e.clientY - 6) + 'px';
+  });
+
+  var menuBtn    = document.getElementById('menuBtn');
+  var closeBtn   = document.getElementById('closeMenu');
+  var mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', function() { mobileMenu.classList.add('open'); });
+  closeBtn.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  mobileMenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  });
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, query, where, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
+  authDomain: "gwt-database.firebaseapp.com",
+  projectId: "gwt-database",
+  storageBucket: "gwt-database.firebasestorage.app",
+  messagingSenderId: "410076918223",
+  appId: "1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
+});
+const db = getFirestore(app);
+
+let CASE_NUMBER = null;
+let LAST_NAME = null;
+
+function fmtTimestamp(ts) {
+  if (!ts || !ts.toDate) return '';
+  const d = ts.toDate();
+  return d.toLocaleDateString('de-DE') + ' · ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
+function bubbleHtml(m) {
+  const isStaff = m.fromStaff === true;
+  const name = isStaff ? (m.anonymous ? 'GymWenTechnik' : (m.staffDisplayName || 'GymWenTechnik')) : (m.firstName + ' ' + (m.lastName || ''));
+  const mine = !isStaff;
+  return '<div class="gwt-bubble' + (mine ? ' mine' : '') + '">'
+    + '<div class="gwt-bubble-head"><div class="gwt-bubble-from">' + name + '</div>'
+    + '<div class="gwt-bubble-time">' + fmtTimestamp(m.createdAt) + '</div></div>'
+    + (m.subject ? '<div style="font-size:0.72rem;color:var(--accent2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.4rem">' + m.subject + '</div>' : '')
+    + '<div class="gwt-bubble-text">' + (m.message || '').replace(/</g, '&lt;') + '</div>'
+    + '</div>';
+}
+
+let unsubscribeThread = null;
+let THREAD_CACHE = [];
+
+function startThreadListener() {
+  if (unsubscribeThread) { unsubscribeThread(); unsubscribeThread = null; }
+  const q = query(collection(db, 'contact_messages'), where('caseNumber', '==', CASE_NUMBER));
+  unsubscribeThread = onSnapshot(
+    q,
+    { includeMetadataChanges: true },
+    (snap) => {
+      THREAD_CACHE = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
+      const threadEl = document.getElementById('gwtThread');
+      threadEl.innerHTML = THREAD_CACHE.length
+        ? THREAD_CACHE.map(bubbleHtml).join('')
+        : '<p class="gwt-empty">Noch keine Nachrichten in diesem Vorgang.</p>';
+      threadEl.scrollTop = threadEl.scrollHeight;
+    },
+    (err) => {
+      document.getElementById('gwtThread').innerHTML = '<p class="gwt-empty">Fehler beim Live-Laden: ' + err.message + ' – bitte Seite neu laden.</p>';
+    }
+  );
+}
+function stopThreadListener() {
+  if (unsubscribeThread) { unsubscribeThread(); unsubscribeThread = null; }
+  THREAD_CACHE = [];
+}
+
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  const caseInput = document.getElementById('loginCase').value.trim().toUpperCase();
+  const lastInput = document.getElementById('loginLast').value.trim();
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  if (!/^V\d{6}$/.test(caseInput)) { errEl.textContent = 'Die Vorgangsnummer muss aus V und 6 Ziffern bestehen, z.B. V091245.'; errEl.style.display = 'block'; return; }
+  if (!lastInput) { errEl.textContent = 'Bitte gib deinen Nachnamen ein.'; errEl.style.display = 'block'; return; }
+
+  const btn = this;
+  btn.disabled = true;
+  try {
+    const snap = await getDocs(query(collection(db, 'contact_messages'), where('caseNumber', '==', caseInput)));
+    const match = snap.docs.find(d => (d.data().lastName || '').toLowerCase() === lastInput.toLowerCase());
+    if (!match) {
+      errEl.textContent = 'Keine Übereinstimmung gefunden. Bitte prüfe Vorgangsnummer und Nachname.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      return;
+    }
+    CASE_NUMBER = caseInput;
+    LAST_NAME = lastInput;
+    document.getElementById('chatCaseTitle').textContent = 'Vorgang ' + CASE_NUMBER;
+    document.getElementById('loginBox').style.display = 'none';
+    document.getElementById('chatView').style.display = 'block';
+    document.getElementById('gwtThread').innerHTML = '<div class="gwt-skel"></div><div class="gwt-skel" style="margin-left:auto"></div>';
+    startThreadListener();
+  } catch (e) {
+    errEl.textContent = 'Fehler beim Laden: ' + e.message;
+    errEl.style.display = 'block';
+  }
+  btn.disabled = false;
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function() {
+  stopThreadListener();
+  CASE_NUMBER = null;
+  LAST_NAME = null;
+  document.getElementById('loginCase').value = '';
+  document.getElementById('loginLast').value = '';
+  document.getElementById('chatView').style.display = 'none';
+  document.getElementById('loginBox').style.display = 'block';
+});
+
+document.getElementById('gwtReplySend').addEventListener('click', async function() {
+  const ta = document.getElementById('gwtReplyText');
+  const text = ta.value.trim();
+  if (!text || !CASE_NUMBER) return;
+  const btn = this;
+  btn.disabled = true;
+  btn.classList.add('sending');
+  try {
+    const first = THREAD_CACHE.find(m => !m.fromStaff) || {};
+    await addDoc(collection(db, 'contact_messages'), {
+      caseNumber: CASE_NUMBER,
+      firstName: first.firstName || '',
+      lastName: LAST_NAME,
+      email: first.email || '',
+      subject: '',
+      message: text,
+      fromStaff: false,
+      createdAt: serverTimestamp(),
+      read: false
+    });
+    ta.value = '';
+  } catch (e) {
+    alert('Senden fehlgeschlagen: ' + e.message);
+  }
+  btn.disabled = false;
+  btn.classList.remove('sending');
+});
+
+document.getElementById('gwtReplyText').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); document.getElementById('gwtReplySend').click(); }
+});
+</script>
+
+</body>
+</html>

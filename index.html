@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GymWenTechnik – Bühnentechnik am Gymnasium Wendelstein</title>
+  <meta name="description" content="GymWenTechnik – die Bühnentechnik-AG am Gymnasium Wendelstein. Ton, Licht und Bühnenaufbau für Schulveranstaltungen, Konzerte und Theateraufführungen." />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
+      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    /* NAV */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--accent); }
+
+    /* HAMBURGER */
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; transition: all 0.3s; pointer-events: none; }
+
+    /* MOBILE MENU */
+    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+    /* HERO */
+    #hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 5rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(176,28,117,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
+    .beams { position: absolute; inset: 0; pointer-events: none; }
+    .beam { position: absolute; top: -10%; width: 2px; height: 110vh; background: linear-gradient(180deg, rgba(30,174,149,0.22) 0%, transparent 100%); transform-origin: top center; animation: flicker 4s infinite; }
+    .beam:nth-child(1) { left: 20%; transform: rotate(-8deg); }
+    .beam:nth-child(2) { left: 50%; transform: rotate(0deg); animation-delay: 1.2s; opacity: 0.7; }
+    .beam:nth-child(3) { left: 78%; transform: rotate(7deg); animation-delay: 2.4s; }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} 75%{opacity:0.9} }
+    .hero-tag { display: inline-block; font-size: 0.72rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.2s forwards; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 9rem); line-height: 0.92; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+    .hero-title .accent { color: var(--accent); }
+    .hero-title .dim { color: var(--muted); font-size: 0.55em; display: block; }
+    .hero-sub { max-width: 480px; margin-top: 2rem; color: var(--muted); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
+    .hero-cta { margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+    .hero-img-slot { position: absolute; top: 0; right: 0; width: 48%; height: 100%; z-index: 1; overflow: hidden; }
+    .hero-img-slot img { width: 100%; height: 100%; object-fit: cover; opacity: 0.85; }
+    .hero-img-slot::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--black) 0%, rgba(44,44,58,0.55) 35%, transparent 75%), linear-gradient(180deg, transparent 60%, var(--black) 100%); }
+    .hero-img-slot.empty { display: none; }
+    @media (max-width: 900px) { .hero-img-slot { display: none !important; } }
+    .btn { padding: 0.75rem 2rem; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; border: 1px solid var(--accent); color: var(--accent); background: transparent; transition: all 0.25s; }
+    .btn:hover { background: var(--accent); color: var(--white); }
+    .btn.filled { background: var(--accent); color: var(--white); }
+    .btn.filled:hover { background: transparent; color: var(--accent); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    /* SECTIONS */
+    section { padding: 7rem 3rem; }
+    .section-label { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4.5rem); color: var(--white); line-height: 1; margin-bottom: 1.5rem; }
+    .section-head { display: flex; align-items: center; gap: 2rem; margin-bottom: 3rem; }
+    .divider { width: 60px; height: 2px; background: var(--accent); flex-shrink: 0; }
+    .section-link { font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 1px solid var(--border); padding-bottom: 2px; transition: color 0.2s, border-color 0.2s; }
+    .section-head-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 2.5rem; flex-wrap: wrap; }
+    .section-accent-img { width: 220px; height: 140px; flex-shrink: 0; }
+    .section-accent-img.empty { display: none; }
+    @media (max-width: 768px) { .section-accent-img { display: none !important; } }
+    .section-link:hover { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ÜBER */
+    #ueber { background: var(--dark); }
+    .ueber-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; max-width: 1100px; }
+    .ueber-img-col { display: flex; flex-direction: column; gap: 2px; }
+    .ueber-img-col .img-slot { aspect-ratio: 4/3; }
+    .img-slot { position: relative; background: var(--mid); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .img-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-slot.empty::before { content: '🖼️ Noch kein Bild'; }
+    .img-slot-hero { width: 100%; max-width: 480px; aspect-ratio: 4/3; margin-top: 2rem; }
+    .img-slot-teaser { width: 100%; aspect-ratio: 16/9; margin-top: 1.5rem; }
+    .ueber-text p { margin-bottom: 1.2rem; color: var(--text); }
+    .spezi-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--mid); border: 1px solid var(--border); padding: 0.5rem 1rem; font-size: 0.8rem; color: var(--muted); margin-top: 1rem; }
+    .spezi-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent2); }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+    .stat { background: var(--mid); padding: 2rem; border-left: 3px solid var(--accent); }
+    .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 0.8rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
+
+    /* VERANSTALTUNGEN */
+    #veranstaltungen { background: var(--black); }
+    .ev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2px; max-width: 1200px; margin-bottom: 4rem; }
+    .ev-card { background: var(--mid); padding: 2.5rem; border-bottom: 3px solid transparent; transition: border-color 0.25s, background 0.25s; }
+    .ev-image { width: calc(100% + 5rem); margin: -2.5rem -2.5rem 1.5rem; aspect-ratio: 16/9; object-fit: cover; display: block; }
+    .ev-card:hover { border-bottom-color: var(--accent); background: #282838; }
+    .ev-card.upcoming { border-left: 3px solid var(--accent); }
+    .ev-card.project  { border-left: 3px solid var(--accent2); }
+    .ev-date { font-size: 0.7rem; letter-spacing: 0.2em; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem; }
+    .ev-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--white); margin-bottom: 0.5rem; }
+    .ev-desc { font-size: 0.9rem; color: var(--muted); }
+    .ev-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1.2rem; }
+    .tag { font-size: 0.68rem; padding: 0.3rem 0.8rem; border: 1px solid var(--border); color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    .status-badge { display: inline-flex; align-items: center; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.25rem 0.7rem; margin-bottom: 0.8rem; }
+    .status-badge.upcoming { background: rgba(30,174,149,0.12);  color: var(--accent);  border: 1px solid rgba(30,174,149,0.3); }
+    .status-badge.running  { background: rgba(176,28,117,0.12);  color: var(--accent2); border: 1px solid rgba(176,28,117,0.3); }
+    .status-badge.done     { background: rgba(136,136,160,0.1);  color: var(--muted);   border: 1px solid var(--border); }
+    .subsection-label { font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+    .empty-state { color: var(--muted); font-size: 0.9rem; padding: 2rem 0; }
+
+    /* GALERIE */
+    #galerie { background: var(--dark); }
+    .gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 4px; max-width: 1200px; }
+    .gal-img { aspect-ratio: 4/3; overflow: hidden; background: var(--mid); }
+    .gal-img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.3s; }
+    .gal-img:hover img { transform: scale(1.04); }
+
+    /* KONTAKT */
+    #kontakt { background: var(--black); }
+    .kontakt-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; max-width: 1000px; }
+    .kontakt-info p { color: var(--muted); margin-bottom: 2rem; }
+    .kontakt-detail { display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem; }
+    .kontakt-icon { width: 40px; height: 40px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--accent); }
+    .kontakt-icon svg { width: 16px; height: 16px; }
+    .kontakt-detail-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
+    .kontakt-detail-text { font-size: 0.9rem; }
+    .kontakt-form { display: flex; flex-direction: column; gap: 1rem; }
+    .gwtchat-banner { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; padding: 1.6rem 2rem; background: rgba(176,28,117,0.1); border: 1px solid rgba(176,28,117,0.35); margin-bottom: 2.5rem; }
+    .gwtchat-banner-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--white); margin-bottom: 0.3rem; letter-spacing: 0.02em; }
+    .gwtchat-banner-text p { font-size: 0.86rem; color: var(--muted); margin: 0; }
+    .gwtchat-banner-btn { flex-shrink: 0; background: var(--accent2); color: var(--white); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.8rem 1.6rem; transition: opacity 0.2s; white-space: nowrap; }
+    .gwtchat-banner-btn:hover { opacity: 0.85; }
+    .form-box-notice { font-size: 0.82rem; color: var(--text); background: rgba(30,174,149,0.07); border-left: 3px solid var(--accent); padding: 0.8rem 1rem; margin-bottom: 0.5rem; line-height: 1.6; }
+    .form-box-notice a { color: var(--accent); text-decoration: none; }
+    .form-box-notice a:hover { opacity: 0.8; }
+    .gwtchat-callout { display: none; margin-top: 0.5rem; padding: 1.4rem 1.6rem; background: rgba(176,28,117,0.08); border: 1px solid rgba(176,28,117,0.35); }
+    .gwtchat-callout-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; color: var(--white); margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+    .gwtchat-callout p { font-size: 0.88rem; color: var(--text); margin-bottom: 1rem; }
+    .gwtchat-callout-btn { display: inline-block; background: var(--accent2); color: var(--white); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.7rem 1.4rem; transition: opacity 0.2s; }
+    .gwtchat-callout-btn:hover { opacity: 0.85; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group label { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .form-group input, .form-group textarea { background: var(--mid); border: 1px solid var(--border); color: var(--text); padding: 0.85rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group textarea { min-height: 120px; }
+    .form-submit { padding: 0.85rem 2rem; background: var(--accent); color: var(--white); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; align-self: flex-start; }
+    .form-submit:hover { background: var(--accent2); }
+
+    /* FOOTER */
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+    .footer-legal { display: flex; gap: 1.5rem; }
+    .footer-legal a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-legal a:hover { color: var(--accent); }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #hero { padding: 0 1.5rem 4rem; }
+      section { padding: 5rem 1.5rem; }
+      .ueber-grid, .kontakt-layout { grid-template-columns: 1fr; gap: 3rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/news.html">News</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/news.html">News</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="beams"><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
+  <div class="hero-img-slot empty" data-img-slot="index:hero"></div>
+  <span class="hero-tag">Gymnasium Wendelstein · Bühnentechnik</span>
+  <h1 class="hero-title">GymWen<br><span class="accent">Technik</span><span class="dim">Hinter den Kulissen</span></h1>
+  <p class="hero-sub">Wir sorgen dafür, dass jede Aufführung zum Erlebnis wird – Licht, Ton, Bühne. Und danach gibt's Spezi.</p>
+  <div class="hero-cta">
+    <a href="https://gymwentechnik.de/ueber.html" class="btn filled">Mehr erfahren</a>
+    <a href="https://gymwentechnik.de/kontakt.html" class="btn">Kontakt</a>
+  </div>
+</section>
+
+<!-- ÜBER UNS -->
+<section id="ueber">
+  <div class="section-label">Wer wir sind</div>
+  <h2 class="section-title">Über uns</h2>
+  <div class="section-head">
+    <div class="divider"></div>
+    <a href="https://gymwentechnik.de/ueber.html" class="section-link">Zur Seite →</a>
+  </div>
+  <div class="ueber-grid reveal">
+    <div class="ueber-text">
+      <p>Die <strong>GymWenTechnik</strong> ist das Bühnentechnik-Team des Gymnasiums Wendelstein. Wir planen, installieren und bedienen die gesamte Technik für alle schulischen Veranstaltungen – von Konzerten und Theaterstücken bis hin zu Abschlussveranstaltungen.</p>
+      <p>Unser Team besteht aus engagierten Schülerinnen und Schülern, die sich leidenschaftlich für Licht- und Tontechnik interessieren und ihr Können bei jeder Aufführung einbringen.</p>
+      <p>Ob Beleuchtung, Ton oder Bühnenaufbau – wir sind die, die im Hintergrund arbeiten, damit das Rampenlicht die Richtigen - oder auch mal die Falschen - trifft.</p>
+      <div class="spezi-badge"><span class="dot"></span> Offizielles Lieblingsgetränk: Paulaner Spezi</div>
+    </div>
+    <div class="ueber-img-col">
+      <div class="img-slot empty" data-img-slot="index:ueber-teaser"></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-num">10+</div><div class="stat-label">Aktive Mitglieder</div></div>
+        <div class="stat"><div class="stat-num">1–9</div><div class="stat-label">Jahre Erfahrung</div></div>
+        <div class="stat"><div class="stat-num">∞</div><div class="stat-label">Veranstaltungen</div></div>
+        <div class="stat"><div class="stat-num">🥤</div><div class="stat-label">Spezi-Flaschen leer</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VERANSTALTUNGEN -->
+<section id="veranstaltungen">
+  <div class="section-head-row">
+    <div>
+      <div class="section-label">Was wir machen</div>
+      <h2 class="section-title">Alle Veranstaltungen</h2>
+      <div class="section-head">
+        <div class="divider"></div>
+        <a href="https://gymwentechnik.de/veranstaltungen.html" class="section-link">Alle anzeigen →</a>
+      </div>
+    </div>
+    <div class="img-slot section-accent-img empty" data-img-slot="index:veranstaltungen-teaser"></div>
+  </div>
+  <div class="reveal">
+    <div class="subsection-label">Anstehende Veranstaltungen</div>
+    <div class="ev-grid" id="upcoming-grid"><p class="empty-state">Lade…</p></div>
+    <div class="subsection-label">Laufende Veranstaltungen</div>
+    <div class="ev-grid" id="projects-grid"><p class="empty-state">Lade…</p></div>
+    <div class="subsection-label">Vergangene Veranstaltungen</div>
+    <div class="ev-grid" id="past-grid"><p class="empty-state">Lade…</p></div>
+  </div>
+</section>
+
+<!-- GALERIE -->
+<section id="galerie">
+  <div class="section-head-row">
+    <div>
+      <div class="section-label">Einblicke</div>
+      <h2 class="section-title">Galerie</h2>
+      <div class="section-head">
+        <div class="divider"></div>
+        <a href="https://gymwentechnik.de/galerie.html" class="section-link">Zur Galerie →</a>
+      </div>
+    </div>
+    <div class="img-slot section-accent-img empty" data-img-slot="index:galerie-teaser"></div>
+  </div>
+  <div class="gal-grid reveal" id="gal-grid"><p class="empty-state">Lade…</p></div>
+</section>
+
+<!-- KONTAKT -->
+<section id="kontakt">
+  <div class="section-label">Schreib uns</div>
+  <h2 class="section-title">Kontakt</h2>
+  <div class="section-head">
+    <div class="divider"></div>
+    <a href="https://gymwentechnik.de/kontakt.html" class="section-link">Zur Seite →</a>
+  </div>
+  <div class="gwtchat-banner reveal">
+    <div class="gwtchat-banner-text">
+      <div class="gwtchat-banner-title">💬 Hast du schon eine Vorgangsnummer?</div>
+      <p>Dann nicht erneut das Formular ausfüllen – geh direkt in den <strong>gwtChat</strong> und schreib uns dort weiter.</p>
+    </div>
+    <a href="https://gymwentechnik.de/gwtchat.html" class="gwtchat-banner-btn">Zum gwtChat →</a>
+  </div>
+  <div class="kontakt-layout reveal">
+    <div class="kontakt-info">
+      <p>Hast du Fragen zu einer Veranstaltung oder möchtest du Teil unseres Teams werden? Wir freuen uns über jede Nachricht.</p>
+      <div class="kontakt-detail">
+        <div class="kontakt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
+        <div>
+          <div class="kontakt-detail-label">Adresse</div>
+          <div class="kontakt-detail-text">Bühnentechnik Gymnasium Wendelstein<br>In der Gibitzen 29<br>90530 Wendelstein</div>
+        </div>
+      </div>
+      <div class="kontakt-detail">
+        <div class="kontakt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div>
+          <div class="kontakt-detail-label">E-Mail</div>
+          <div class="kontakt-detail-text">support@gymwentechnik.de</div>
+        </div>
+      </div>
+    </div>
+    <div class="kontakt-form">
+      <div class="form-box-notice">
+        ⚠️ Dieses Formular ist nur für <strong>neue Anliegen</strong> gedacht – also wenn du <strong>noch keine Vorgangsnummer</strong> besitzt. Hast du bereits eine, nutze stattdessen den <a href="https://gymwentechnik.de/gwtchat.html">gwtChat</a>.
+      </div>
+      <div class="form-group"><label>Vorname *</label><input type="text" id="ixName" placeholder="Dein Vorname" /></div>
+      <div class="form-group"><label>Nachname *</label><input type="text" id="ixLast" placeholder="Dein Nachname" /></div>
+      <div class="form-group"><label>E-Mail</label><input type="email" id="ixEmail" placeholder="deine@email.de" /></div>
+      <div class="form-group"><label>Betreff</label><input type="text" id="ixSubject" placeholder="Worum geht es?" /></div>
+      <div class="form-group"><label>Nachricht</label><textarea id="ixMessage" placeholder="Deine Nachricht…"></textarea></div>
+      <button class="form-submit" id="contactBtn">Nachricht senden</button>
+      <p id="contactSuccess" style="display:none;font-size:0.85rem;color:var(--accent);margin-top:0.5rem;">✓ Nachricht gesendet!</p>
+      <p id="contactSuccessCase" style="display:none;font-size:0.85rem;color:var(--accent);margin-top:0.3rem;"></p>
+      <div class="gwtchat-callout" id="gwtChatCallout" style="display:none">
+        <div class="gwtchat-callout-title">💬 Im gwtChat weiterverfolgen</div>
+        <p>Antworten der GymWenTechnik erscheinen im <strong>gwtChat</strong> – nicht per E-Mail. Logge dich dort mit deiner Vorgangsnummer und deinem Nachnamen ein.</p>
+        <a href="https://gymwentechnik.de/gwtchat.html" class="gwtchat-callout-btn">Zum gwtChat →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2026 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-legal">
+    <a href="https://gymwentechnik.de/impressum.html">Impressum</a>
+    <a href="https://gymwentechnik.de/datenschutz.html">Datenschutz</a>
+  </div>
+</footer>
+
+<!-- REGULAR JS: burger menu, cursor, reveal – runs immediately, no module needed -->
+<script>
+  // Cursor
+  var cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = (e.clientX - 6) + 'px';
+    cursor.style.top  = (e.clientY - 6) + 'px';
+  });
+
+  // Mobile menu
+  var menuBtn    = document.getElementById('menuBtn');
+  var closeBtn   = document.getElementById('closeMenu');
+  var mobileMenu = document.getElementById('mobileMenu');
+
+  menuBtn.addEventListener('click', function() {
+    mobileMenu.classList.add('open');
+  });
+  closeBtn.addEventListener('click', function() {
+    mobileMenu.classList.remove('open');
+  });
+  mobileMenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      mobileMenu.classList.remove('open');
+    });
+  });
+
+  // Scroll reveal
+  var revEls = document.querySelectorAll('.reveal');
+  var revObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.08 });
+  revEls.forEach(function(el) { revObs.observe(el); });
+</script>
+
+<!-- FIREBASE MODULE: loads async, doesn't block menu -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, addDoc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
+  authDomain: "gwt-database.firebaseapp.com",
+  projectId: "gwt-database",
+  storageBucket: "gwt-database.firebasestorage.app",
+  messagingSenderId: "410076918223",
+  appId: "1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
+});
+const db = getFirestore(app);
+
+const statusLabels = { upcoming: 'Anstehend', running: 'Läuft', done: 'Abgeschlossen' };
+const MONATE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+function parseDmy(s) {
+  if (!s) return null;
+  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s.trim());
+  if (!m) return null;
+  const d = new Date(parseInt(m[3]), parseInt(m[2]) - 1, parseInt(m[1]));
+  d.setHours(0,0,0,0);
+  return d;
+}
+function formatLong(d) { return d.getDate() + '. ' + MONATE[d.getMonth()] + ' ' + d.getFullYear(); }
+function evDateLabel(ev) {
+  if (ev.dateMode === 'soon') return 'Bald';
+  const start = parseDmy(ev.startDate);
+  if (!start) return ev.startDate || '';
+  if (ev.dateMode === 'range') {
+    const end = parseDmy(ev.endDate);
+    if (end) return formatLong(start) + ' – ' + formatLong(end);
+  }
+  return formatLong(start);
+}
+function evStatus(ev) {
+  if (ev.dateMode === 'soon') return 'upcoming';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = parseDmy(ev.startDate);
+  const end = ev.dateMode === 'range' ? parseDmy(ev.endDate) : start;
+  if (!start) return 'upcoming';
+  if (today < start) return 'upcoming';
+  if (end && today > end) return 'done';
+  if (end && today >= start && today <= end) return 'running';
+  return today.getTime() === start.getTime() ? 'running' : 'done';
+}
+function evSortKey(ev) {
+  if (ev.dateMode === 'soon') return Infinity - 1; // "Bald" steht unter datierten Einträgen
+  const start = parseDmy(ev.startDate);
+  return start ? start.getTime() : Infinity;
+}
+function cardHtml(ev, statusType) {
+  const cls = statusType === 'upcoming' ? 'upcoming' : statusType === 'running' ? 'project' : '';
+  return `
+    <div class="ev-card ${cls}">
+      ${ev.imageUrl ? `<img src="${ev.imageUrl}" alt="${ev.name}" class="ev-image" loading="lazy"/>` : ''}
+      <div class="status-badge ${statusType}">${statusLabels[statusType]}</div>
+      <div class="ev-date">${evDateLabel(ev)}</div>
+      <div class="ev-name">${ev.name}</div>
+      <div class="ev-desc">${ev.desc || ''}</div>
+      <div class="ev-tags">${(ev.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>`;
+}
+
+async function loadEvents() {
+  const grids = {
+    upcoming: document.getElementById('upcoming-grid'),
+    running:  document.getElementById('projects-grid'),
+    done:     document.getElementById('past-grid')
+  };
+  try {
+    const snap = await getDocs(collection(db, 'events'));
+    // "probe" (Proben) ist nur intern sichtbar
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(ev => ev.category !== 'probe');
+    items.sort((a, b) => evSortKey(a) - evSortKey(b));
+
+    const buckets = { upcoming: [], running: [], done: [] };
+    items.forEach(ev => buckets[evStatus(ev)].push(ev));
+    buckets.done.sort((a, b) => evSortKey(b) - evSortKey(a));
+
+    Object.keys(grids).forEach(key => {
+      const list = buckets[key];
+      grids[key].innerHTML = list.length ? list.map(ev => cardHtml(ev, key)).join('') : '<p class="empty-state">Keine Einträge vorhanden.</p>';
+    });
+  } catch (e) {
+    Object.values(grids).forEach(el => { el.innerHTML = '<p class="empty-state">Fehler beim Laden.</p>'; });
+  }
+}
+
+async function loadGallery() {
+  const grid = document.getElementById('gal-grid');
+  try {
+    const snap  = await getDocs(collection(db, 'gallery'));
+    const items = snap.docs.map(d => d.data()).slice(0, 8);
+    grid.innerHTML = items.length
+      ? items.map(img => `<div class="gal-img"><img src="${img.url}" alt="${img.caption || ''}" loading="lazy" /></div>`).join('')
+      : '<p class="empty-state">Noch keine Fotos – werden über den internen Bereich hochgeladen.</p>';
+  } catch(e) {
+    grid.innerHTML = '<p class="empty-state">Fehler beim Laden.</p>';
+  }
+}
+
+function genCaseNumber() {
+  const n = Math.floor(100000 + Math.random() * 900000);
+  return 'V' + n;
+}
+async function generateUniqueCaseNumber() {
+  for (let i = 0; i < 5; i++) {
+    const candidate = genCaseNumber();
+    const q = query(collection(db, 'contact_messages'), where('caseNumber', '==', candidate));
+    const snap = await getDocs(q);
+    if (snap.empty) return candidate;
+  }
+  return genCaseNumber() + Date.now().toString().slice(-3);
+}
+
+// Kontaktformular (Startseite) – speichert in Firestore, kein Mailversand
+document.getElementById('contactBtn').addEventListener('click', async function() {
+  const name = document.getElementById('ixName').value.trim();
+  const lastName = document.getElementById('ixLast').value.trim();
+  const email = document.getElementById('ixEmail').value.trim();
+  const subject = document.getElementById('ixSubject').value.trim();
+  const message = document.getElementById('ixMessage').value.trim();
+  if (!name || !lastName || !email || !message) { alert('Bitte fülle alle Pflichtfelder aus (auch Nachname – du brauchst ihn für den gwtChat-Login).'); return; }
+
+  const btn = this;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  try {
+    const caseNumber = await generateUniqueCaseNumber();
+    await addDoc(collection(db, 'contact_messages'), {
+      firstName: name,
+      lastName: lastName,
+      email: email,
+      subject: subject,
+      message: message,
+      caseNumber: caseNumber,
+      createdAt: serverTimestamp(),
+      read: false
+    });
+    document.getElementById('contactSuccess').style.display = 'block';
+    const caseMsgEl = document.getElementById('contactSuccessCase');
+    caseMsgEl.textContent = '✓ Deine Vorgangsnummer: ' + caseNumber + ' — bitte notieren!';
+    caseMsgEl.style.display = 'block';
+    document.getElementById('gwtChatCallout').style.display = 'block';
+    document.getElementById('gwtChatCallout').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    alert('Senden fehlgeschlagen. Bitte versuch es später erneut oder schreib uns direkt per E-Mail.');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+});
+
+// Bilder-Editor: befüllte Bildrahmen aus Firestore anzeigen
+async function loadPageImages(){
+  const slots=document.querySelectorAll('[data-img-slot]');
+  if(!slots.length)return;
+  try{
+    const snap=await getDocs(collection(db,'page_images'));
+    const map={};
+    snap.docs.forEach(d=>{map[d.id]=d.data();});
+    slots.forEach(el=>{
+      const key=el.dataset.imgSlot;
+      const data=map[key];
+      if(data&&data.url){
+        el.classList.remove('empty');
+        el.innerHTML='<img src="'+data.url+'" alt="'+(data.alt||'')+'" loading="lazy"/>';
+      }
+    });
+  }catch(e){/* Rahmen bleiben leer, kein harter Fehler für die Seite */}
+}
+
+loadEvents();
+loadGallery();
+loadPageImages();
+</script>
+
+<!-- Easter Egg: Snake (Logo 3x klicken) -->
+<div class="ttt-overlay" id="snakeOverlay">
+  <div class="ttt-box" style="max-width:440px">
+    <button class="ttt-close" id="snakeClose">✕</button>
+    <div class="ttt-title">🐍 Snake!</div>
+    <div class="ttt-sub">Logo 3x geklickt – gut gemacht. WASD oder Pfeiltasten.</div>
+    <canvas id="snakeCanvas" width="320" height="320" style="background:#0d0d14;display:block;margin:0 auto 1rem;border:1px solid var(--border)"></canvas>
+    <div class="ttt-status" id="snakeStatus">Drücke eine Taste zum Starten</div>
+    <button class="ttt-restart" id="snakeRestart">Neu starten</button>
+  </div>
+</div>
+<script>
+(function(){
+  var logo=document.querySelector('.nav-logo');
+  var clicks=0,clickTimer=null;
+  logo.addEventListener('click',function(e){
+    e.preventDefault();
+    clicks++;
+    if(clickTimer)clearTimeout(clickTimer);
+    clickTimer=setTimeout(function(){clicks=0;},600);
+    if(clicks>=3){
+      clicks=0;
+      document.getElementById('snakeOverlay').classList.add('open');
+      initSnake();
+    }
+  });
+  var snakeInterval=null,snake,dir,food,score,running;
+  var C=320,SZ=16,COLS=C/SZ;
+  function initSnake(){
+    snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];
+    dir={x:1,y:0};food=randFood();score=0;running=false;
+    document.getElementById('snakeStatus').textContent='Drücke eine Taste zum Starten';
+    drawSnake();
+  }
+  function randFood(){
+    return{x:Math.floor(Math.random()*COLS),y:Math.floor(Math.random()*COLS)};
+  }
+  function drawSnake(){
+    var canvas=document.getElementById('snakeCanvas');
+    if(!canvas)return;
+    var ctx=canvas.getContext('2d');
+    ctx.fillStyle='#0d0d14';ctx.fillRect(0,0,C,C);
+    ctx.fillStyle='#1EAE95';
+    snake.forEach(function(s){ctx.fillRect(s.x*SZ+1,s.y*SZ+1,SZ-2,SZ-2);});
+    ctx.fillStyle='#B01C75';
+    ctx.fillRect(food.x*SZ+2,food.y*SZ+2,SZ-4,SZ-4);
+    ctx.fillStyle='rgba(255,255,255,0.25)';ctx.font='10px DM Sans';
+    ctx.fillText('Score: '+score,4,12);
+  }
+  function stepSnake(){
+    var head={x:(snake[0].x+dir.x+COLS)%COLS,y:(snake[0].y+dir.y+COLS)%COLS};
+    if(snake.some(function(s){return s.x===head.x&&s.y===head.y;})){
+      clearInterval(snakeInterval);running=false;
+      document.getElementById('snakeStatus').textContent='Game Over! Score: '+score;return;
+    }
+    snake.unshift(head);
+    if(head.x===food.x&&head.y===food.y){score++;food=randFood();}
+    else snake.pop();
+    drawSnake();
+  }
+  document.addEventListener('keydown',function(e){
+    var map={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0},
+             w:{x:0,y:-1},s:{x:0,y:1},a:{x:-1,y:0},d:{x:1,y:0}};
+    if(!document.getElementById('snakeOverlay').classList.contains('open'))return;
+    if(map[e.key]){
+      e.preventDefault();
+      var nd=map[e.key];
+      if(nd.x+dir.x!==0||nd.y+dir.y!==0)dir=nd;
+      if(!running){running=true;snakeInterval=setInterval(stepSnake,140);document.getElementById('snakeStatus').textContent='';}
+    }
+  });
+  document.getElementById('snakeClose').addEventListener('click',function(){
+    clearInterval(snakeInterval);document.getElementById('snakeOverlay').classList.remove('open');
+  });
+  document.getElementById('snakeRestart').addEventListener('click',function(){
+    clearInterval(snakeInterval);initSnake();
+  });
+})();
+</script>
+</body>
+</html>
