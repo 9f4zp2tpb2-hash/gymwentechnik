@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://gymwentechnik.de/gwt-global.js" defer>
+  // Dark/Light-Mode-Umschalter
+  (function(){
+    var stored=localStorage.getItem('gwt_theme');
+    if(stored==='light')document.body.classList.add('light');
+    var btn=document.getElementById('themeToggleBtn');
+    if(btn){
+      btn.textContent=document.body.classList.contains('light')?'\u2600\ufe0f':'\U0001f319';
+      btn.addEventListener('click',function(){
+        var isLight=document.body.classList.toggle('light');
+        localStorage.setItem('gwt_theme',isLight?'light':'dark');
+        btn.textContent=isLight?'\u2600\ufe0f':'\U0001f319';
+      });
+    }
+  })();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Impressum – GymWenTechnik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
+      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
+    }
+
+    body.light { --black:#f5f5f5; --dark:#ffffff; --mid:#ebebeb; --border:#d0d0d0; --text:#2a2a2a; --muted:#888; --white:#1a1a1a; background:var(--black); }
+    body.light nav { background:rgba(245,245,245,0.97); }
+    body.light .hero-bg { background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.10) 0%, transparent 70%), #f0f0f0; }
+    .theme-toggle { background:none; border:1px solid var(--border); color:var(--muted); font-size:0.85rem; width:34px; height:34px; cursor:pointer; border-radius:50%; transition:all 0.2s; }
+    .theme-toggle:hover { border-color:var(--accent); color:var(--accent); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; pointer-events: none; }
+    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+    #page-hero { min-height: 42vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 4rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(176,28,117,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
+    .hero-breadcrumb { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+    .hero-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem, 7vw, 5.5rem); line-height: 0.95; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    section { padding: 5rem 3rem 6rem; }
+    .legal-content { max-width: 760px; }
+    .legal-block { margin-bottom: 2.8rem; }
+    .legal-block h2 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; color: var(--white); margin-bottom: 1rem; letter-spacing: 0.02em; }
+    .legal-block p { font-size: 0.95rem; color: var(--text); margin-bottom: 0.8rem; }
+    .legal-block address { font-style: normal; font-size: 0.95rem; color: var(--text); line-height: 1.8; }
+    .legal-block a { color: var(--accent); text-decoration: none; transition: opacity 0.2s; }
+    .legal-block a:hover { opacity: 0.75; }
+    .legal-divider { width: 60px; height: 2px; background: var(--accent); margin-bottom: 3.5rem; }
+
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+    .footer-legal { display: flex; gap: 1.5rem; }
+    .footer-legal a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-legal a:hover { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #page-hero { padding: 0 1.5rem 3rem; min-height: 34vh; }
+      section { padding: 3.5rem 1.5rem 4rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/news.html">News</a></li>
+    <li><a href="https://gymwentechnik.de/suche.html">🔍</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+  <button class="theme-toggle" id="themeToggleBtn" title="Dark/Light">🌙</button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/news.html">News</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/suche.html">Suche</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<section id="page-hero">
+  <div class="hero-bg"></div>
+  <div class="hero-breadcrumb"><a href="https://gymwentechnik.de">Startseite</a> &nbsp;/&nbsp; Impressum</div>
+  <h1 class="hero-title">Impressum</h1>
+</section>
+
+<section style="background: var(--black);">
+  <div class="legal-divider"></div>
+  <div class="legal-content">
+
+    <div class="legal-block">
+      <h2>Angaben gemäß § 5 DDG</h2>
+      <address>
+        Bühnentechnik des Gymnasiums Wendelstein<br>
+        Gymnasium Wendelstein<br>
+        In der Gibitzen 29<br>
+        90530 Wendelstein<br>
+        Deutschland
+      </address>
+    </div>
+
+    <div class="legal-block">
+      <h2>Kontakt</h2>
+      <p>E-Mail: <a href="mailto:support@gymwentechnik.de">support@gymwentechnik.de</a></p>
+    </div>
+
+    <div class="legal-block">
+      <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+      <address>
+        Bühnentechnik des Gymnasiums Wendelstein<br>
+        Gymnasium Wendelstein<br>
+        In der Gibitzen 29<br>
+        90530 Wendelstein<br>
+        Deutschland
+      </address>
+    </div>
+
+    <div class="legal-block">
+      <h2>Haftung für Inhalte</h2>
+      <p>Die Inhalte dieser Website wurden mit größter Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte wird jedoch keine Gewähr übernommen.</p>
+    </div>
+
+    <div class="legal-block">
+      <h2>Urheberrecht</h2>
+      <p>Die auf dieser Website veröffentlichten Inhalte und Werke unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung oder Verbreitung außerhalb der Grenzen des Urheberrechts bedarf der Zustimmung der jeweiligen Rechteinhaber.</p>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2026 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-legal">
+    <a href="https://gymwentechnik.de/impressum.html">Impressum</a>
+    <a href="https://gymwentechnik.de/datenschutz.html">Datenschutz</a>
+  </div>
+</footer>
+
+<script>
+  var cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = (e.clientX - 6) + 'px';
+    cursor.style.top  = (e.clientY - 6) + 'px';
+  });
+
+  var menuBtn    = document.getElementById('menuBtn');
+  var closeBtn   = document.getElementById('closeMenu');
+  var mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', function() { mobileMenu.classList.add('open'); });
+  closeBtn.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  mobileMenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  });
+</script>
+
+
+<script type="module" src="https://gymwentechnik.de/gwt-theme.js"></script>
+</body>
+</html>

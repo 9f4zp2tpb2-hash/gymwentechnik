@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://gymwentechnik.de/gwt-global.js" defer>
+  // Dark/Light-Mode-Umschalter
+  (function(){
+    var stored=localStorage.getItem('gwt_theme');
+    if(stored==='light')document.body.classList.add('light');
+    var btn=document.getElementById('themeToggleBtn');
+    if(btn){
+      btn.textContent=document.body.classList.contains('light')?'\u2600\ufe0f':'\U0001f319';
+      btn.addEventListener('click',function(){
+        var isLight=document.body.classList.toggle('light');
+        localStorage.setItem('gwt_theme',isLight?'light':'dark');
+        btn.textContent=isLight?'\u2600\ufe0f':'\U0001f319';
+      });
+    }
+  })();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kontakt – GymWenTechnik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
+      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
+    }
+
+    body.light { --black:#f5f5f5; --dark:#ffffff; --mid:#ebebeb; --border:#d0d0d0; --text:#2a2a2a; --muted:#888; --white:#1a1a1a; background:var(--black); }
+    body.light nav { background:rgba(245,245,245,0.97); }
+    body.light .hero-bg { background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.10) 0%, transparent 70%), #f0f0f0; }
+    .theme-toggle { background:none; border:1px solid var(--border); color:var(--muted); font-size:0.85rem; width:34px; height:34px; cursor:pointer; border-radius:50%; transition:all 0.2s; }
+    .theme-toggle:hover { border-color:var(--accent); color:var(--accent); }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
+    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
+
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
+    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; pointer-events: none; }
+    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
+    .mobile-menu a:hover { color: var(--accent); }
+    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
+
+    #page-hero { min-height: 60vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 5rem; position: relative; overflow: hidden; }
+    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(176,28,117,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
+    .beams { position: absolute; inset: 0; pointer-events: none; }
+    .beam { position: absolute; top: -10%; width: 2px; height: 110vh; background: linear-gradient(180deg, rgba(30,174,149,0.22) 0%, transparent 100%); transform-origin: top center; animation: flicker 4s infinite; }
+    .beam:nth-child(1) { left: 20%; transform: rotate(-8deg); }
+    .beam:nth-child(2) { left: 50%; transform: rotate(0deg); animation-delay: 1.2s; opacity: 0.7; }
+    .beam:nth-child(3) { left: 78%; transform: rotate(7deg); animation-delay: 2.4s; }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} 75%{opacity:0.9} }
+    .hero-breadcrumb { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
+    .hero-breadcrumb a { color: var(--accent); text-decoration: none; }
+    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 9rem); line-height: 0.92; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
+    .hero-title .accent { color: var(--accent); }
+    .hero-title .dim { color: var(--muted); font-size: 0.55em; display: block; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+    section { padding: 7rem 3rem; }
+    .section-label { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4.5rem); color: var(--white); line-height: 1; margin-bottom: 1.5rem; }
+    .divider { width: 60px; height: 2px; background: var(--accent); margin-bottom: 3rem; }
+
+    /* KONTAKT LAYOUT */
+    .kontakt-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 6rem; max-width: 1100px; align-items: start; }
+    .kontakt-intro { font-size: 1rem; color: var(--muted); margin-bottom: 3rem; max-width: 380px; }
+    .detail-block { margin-bottom: 2.5rem; }
+    .detail-label { font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.8rem; }
+    .detail-content { font-size: 0.95rem; color: var(--text); line-height: 1.8; }
+    .detail-content a { color: var(--accent); text-decoration: none; transition: opacity 0.2s; }
+    .detail-content a:hover { opacity: 0.75; }
+    .detail-divider { width: 100%; height: 1px; background: var(--border); margin: 2.5rem 0; }
+
+    /* FORM */
+    .form-box { background: var(--mid); padding: 3rem; position: relative; }
+    .form-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+    .form-box h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--white); margin-bottom: 0.4rem; }
+    .form-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .form-group input, .form-group select, .form-group textarea { background: var(--dark); border: 1px solid var(--border); color: var(--text); padding: 0.85rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; resize: vertical; width: 100%; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+    .form-group select option { background: var(--dark); }
+    .form-group textarea { min-height: 130px; }
+    .form-submit { margin-top: 1.5rem; width: 100%; padding: 1rem; background: var(--accent); color: var(--white); border: none; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; letter-spacing: 0.18em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; }
+    .form-submit:hover { background: var(--accent2); }
+    .success-msg { display: none; margin-top: 1rem; padding: 0.8rem 1rem; background: rgba(30,174,149,0.08); border-left: 3px solid var(--accent); font-size: 0.85rem; color: var(--accent); }
+    .gwtchat-callout { display: none; margin-top: 1.5rem; padding: 1.4rem 1.6rem; background: rgba(176,28,117,0.08); border: 1px solid rgba(176,28,117,0.35); }
+    .gwtchat-banner { max-width: 1200px; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap; padding: 1.6rem 2rem; background: rgba(176,28,117,0.1); border: 1px solid rgba(176,28,117,0.35); }
+    .gwtchat-banner-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--white); margin-bottom: 0.3rem; letter-spacing: 0.02em; }
+    .gwtchat-banner-text p { font-size: 0.86rem; color: var(--muted); margin: 0; }
+    .gwtchat-banner-btn { flex-shrink: 0; background: var(--accent2); color: var(--white); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.8rem 1.6rem; transition: opacity 0.2s; white-space: nowrap; }
+    .gwtchat-banner-btn:hover { opacity: 0.85; }
+    .form-box-notice { font-size: 0.82rem; color: var(--text); background: rgba(30,174,149,0.07); border-left: 3px solid var(--accent); padding: 0.8rem 1rem; margin-bottom: 1.5rem; line-height: 1.6; }
+    .img-slot { position: relative; background: var(--mid); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .img-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-slot.empty::before { content: '🖼️ Noch kein Bild'; }
+    .img-slot-team { width: 100%; aspect-ratio: 16/10; }
+    .img-slot-team.empty { display: none; }
+    .form-box-notice a { color: var(--accent); text-decoration: none; }
+    .form-box-notice a:hover { opacity: 0.8; }
+    .gwtchat-callout-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.15rem; color: var(--white); margin-bottom: 0.5rem; letter-spacing: 0.02em; }
+    .gwtchat-callout p { font-size: 0.88rem; color: var(--text); margin-bottom: 1rem; }
+    .gwtchat-callout-btn { display: inline-block; background: var(--accent2); color: var(--white); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.7rem 1.4rem; transition: opacity 0.2s; }
+    .gwtchat-callout-btn:hover { opacity: 0.85; }
+
+    /* FAQ */
+    #faq { background: var(--black); }
+    .faq-list { max-width: 800px; }
+    .faq-item { border-bottom: 1px solid var(--border); }
+    .faq-question { width: 100%; background: none; border: none; color: var(--white); font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 400; text-align: left; padding: 1.5rem 0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: color 0.2s; gap: 1rem; }
+    .faq-question:hover { color: var(--accent); }
+    .faq-icon { font-size: 1.3rem; color: var(--accent); flex-shrink: 0; transition: transform 0.3s; line-height: 1; }
+    .faq-item.open .faq-icon { transform: rotate(45deg); }
+    .faq-answer { font-size: 0.9rem; color: var(--muted); max-height: 0; overflow: hidden; transition: max-height 0.35s ease, padding 0.35s ease; }
+    .faq-item.open .faq-answer { max-height: 300px; padding-bottom: 1.5rem; }
+
+    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
+    .footer-text { font-size: 0.78rem; color: var(--muted); }
+    .footer-legal { display: flex; gap: 1.5rem; }
+    .footer-legal a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-legal a:hover { color: var(--accent); }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) { .kontakt-grid { grid-template-columns: 1fr; gap: 3rem; } }
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      #page-hero { padding: 0 1.5rem 4rem; min-height: 50vh; }
+      section { padding: 5rem 1.5rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-box { padding: 2rem; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="cursor"></div>
+
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/news.html">News</a></li>
+    <li><a href="https://gymwentechnik.de/suche.html">🔍</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html" class="active">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
+    <span></span><span></span><span></span>
+  </button>
+  <button class="theme-toggle" id="themeToggleBtn" title="Dark/Light">🌙</button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/news.html">News</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/suche.html">Suche</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+
+<section id="page-hero">
+  <div class="hero-bg"></div>
+  <div class="beams"><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
+  <div class="hero-breadcrumb"><a href="https://gymwentechnik.de">Startseite</a> &nbsp;/&nbsp; Kontakt</div>
+  <h1 class="hero-title">Schreib<br><span class="accent">Uns</span><span class="dim">Wir freuen uns über jede Nachricht</span></h1>
+</section>
+
+<!-- gwtChat Hinweisbanner – immer sichtbar, unabhängig vom Formular -->
+<section style="background: var(--dark); padding-top: 2.5rem; padding-bottom: 0;">
+  <div class="gwtchat-banner reveal">
+    <div class="gwtchat-banner-text">
+      <div class="gwtchat-banner-title">💬 Hast du schon eine Vorgangsnummer?</div>
+      <p>Dann nicht erneut das Formular ausfüllen – geh direkt in den <strong>gwtChat</strong> und schreib uns dort weiter.</p>
+    </div>
+    <a href="https://gymwentechnik.de/gwtchat.html" class="gwtchat-banner-btn">Zum gwtChat →</a>
+  </div>
+</section>
+
+<!-- KONTAKT -->
+<section style="background: var(--dark);">
+  <div class="section-label">Kontakt</div>
+  <h2 class="section-title">Meld dich bei uns</h2>
+  <div class="divider"></div>
+  <div class="kontakt-grid reveal">
+    <div>
+      <p class="kontakt-intro">Hast du Fragen zu einer Veranstaltung oder möchtest du Teil unseres Teams werden? Wir freuen uns über jede Nachricht.</p>
+      <div class="detail-block">
+        <div class="detail-label">Adresse</div>
+        <div class="detail-content">Bühnentechnik Gymnasium Wendelstein<br>In der Gibitzen 29<br>90530 Wendelstein</div>
+      </div>
+      <div class="detail-divider"></div>
+      <div class="detail-block">
+        <div class="detail-label">E-Mail</div>
+        <div class="detail-content">
+          <a href="mailto:support@gymwentechnik.de">support@gymwentechnik.de</a><br>
+          <span style="color:var(--muted);font-size:0.82rem">[vorname].[nachname]@gymwentechnik.de</span>
+        </div>
+      </div>
+      <div class="detail-divider"></div>
+      <div class="detail-block">
+        <div class="detail-label">Mitglied werden?</div>
+        <div class="detail-content" style="font-size:0.88rem;color:var(--muted)">Wir sind immer offen für neue Mitglieder, die Interesse an Bühnentechnik haben. Schreib uns einfach eine Nachricht! Oder melde dich nächstes Schuljahr über den Wahlkurszettel an!</div>
+      </div>
+      <div class="img-slot img-slot-team empty" data-img-slot="kontakt:team" style="margin-top:2.5rem"></div>
+    </div>
+    <div class="form-box">
+      <h3>Nachricht senden</h3>
+      <p>Wir antworten so schnell wie möglich.</p>
+      <div class="form-box-notice">
+        ⚠️ Dieses Formular ist nur für <strong>neue Anliegen</strong> gedacht – also wenn du <strong>noch keine Vorgangsnummer</strong> besitzt. Hast du bereits eine, nutze stattdessen den <a href="https://gymwentechnik.de/gwtchat.html">gwtChat</a>.
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label>Vorname</label><input type="text" id="fName" placeholder="Max" /></div>
+        <div class="form-group"><label>Nachname *</label><input type="text" id="fLast" placeholder="Mustermann" /></div>
+        <div class="form-group full"><label>E-Mail</label><input type="email" id="fEmail" placeholder="deine@email.de" /></div>
+        <div class="form-group full">
+          <label>Betreff</label>
+          <select id="fSubject">
+            <option value="" disabled selected>Bitte wählen…</option>
+            <option>Allgemeine Anfrage</option>
+            <option>Mitglied werden</option>
+            <option>Frage zu einer Veranstaltung</option>
+            <option>Sonstiges</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>Nachricht</label><textarea id="fMsg" placeholder="Deine Nachricht…"></textarea></div>
+      </div>
+      <button class="form-submit" id="sendBtn">Nachricht absenden</button>
+      <div class="success-msg" id="successMsg">✓ Nachricht gesendet! Wir melden uns bald bei dir.</div>
+      <div class="success-msg" id="successMsgCase" style="display:none"></div>
+      <div class="gwtchat-callout" id="gwtChatCallout" style="display:none">
+        <div class="gwtchat-callout-title">💬 Im gwtChat weiterverfolgen</div>
+        <p>Antworten der GymWenTechnik erscheinen im <strong>gwtChat</strong> – nicht per E-Mail. Logge dich dort mit deiner Vorgangsnummer und deinem Nachnamen ein.</p>
+        <a href="https://gymwentechnik.de/gwtchat.html" class="gwtchat-callout-btn">Zum gwtChat →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="section-label">Häufige Fragen</div>
+  <h2 class="section-title">FAQ</h2>
+  <div class="divider"></div>
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <button class="faq-question">Kann man die GymWenTechnik für externe Veranstaltungen buchen?<span class="faq-icon">+</span></button>
+      <div class="faq-answer">Nein – wir sind ein schulinternes Team und unterstützen ausschließlich Veranstaltungen am Gymnasium Wendelstein.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">Wie kann ich Mitglied werden?<span class="faq-icon">+</span></button>
+      <div class="faq-answer">Schreib uns einfach eine Nachricht über das Kontaktformular oder sprich uns direkt bei einer Veranstaltung an. Vorkenntnisse sind nicht notwendig – wir lernen gemeinsam.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">Welche Technik steht zur Verfügung?<span class="faq-icon">+</span></button>
+      <div class="faq-answer">Wir verfügen über eine vollständige Licht- und Tonanlage für die Schulaula, darunter Scheinwerfer, Mischpulte, Mikrofone und Videoprojektion. Mehr dazu auf der Über-uns-Seite.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">Wann finden Proben oder Treffen statt?<span class="faq-icon">+</span></button>
+      <div class="faq-answer">Unsere Treffen finden nach Bedarf und vor Veranstaltungen statt. Mitglieder werden über den internen Bereich und direkt informiert.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-question">Wie lange dauert es, bis ich eine Antwort erhalte?<span class="faq-icon">+</span></button>
+      <div class="faq-answer">Wir versuchen, innerhalb weniger Tage zu antworten. Bei dringenden Anliegen am besten direkt per E-Mail melden.</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2026 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-legal">
+    <a href="https://gymwentechnik.de/impressum.html">Impressum</a>
+    <a href="https://gymwentechnik.de/datenschutz.html">Datenschutz</a>
+  </div>
+</footer>
+
+<script>
+  var cursor = document.getElementById('cursor');
+  document.addEventListener('mousemove', function(e) {
+    cursor.style.left = (e.clientX - 6) + 'px';
+    cursor.style.top  = (e.clientY - 6) + 'px';
+  });
+
+  var menuBtn    = document.getElementById('menuBtn');
+  var closeBtn   = document.getElementById('closeMenu');
+  var mobileMenu = document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click', function() { mobileMenu.classList.add('open'); });
+  closeBtn.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  mobileMenu.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
+  });
+
+  var revObs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); }
+    });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach(function(el) { revObs.observe(el); });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-question').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var item    = btn.closest('.faq-item');
+      var wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('open'); });
+      if (!wasOpen) item.classList.add('open');
+    });
+  });
+</script>
+
+<!-- Firebase: Kontaktnachrichten werden in Firestore gespeichert (kein Mailversand) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
+  authDomain: "gwt-database.firebaseapp.com",
+  projectId: "gwt-database",
+  storageBucket: "gwt-database.firebasestorage.app",
+  messagingSenderId: "410076918223",
+  appId: "1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
+});
+const db = getFirestore(app);
+
+function genCaseNumber() {
+  var n = Math.floor(100000 + Math.random() * 900000); // 6-stellig
+  return 'V' + n;
+}
+async function generateUniqueCaseNumber() {
+  for (var i = 0; i < 5; i++) {
+    var candidate = genCaseNumber();
+    var q = query(collection(db, 'contact_messages'), where('caseNumber', '==', candidate));
+    var snap = await getDocs(q);
+    if (snap.empty) return candidate;
+  }
+  return genCaseNumber() + Date.now().toString().slice(-3); // Fallback bei seltener Kollision
+}
+
+document.getElementById('sendBtn').addEventListener('click', async function() {
+  var first = document.getElementById('fName').value.trim();
+  var last  = document.getElementById('fLast').value.trim();
+  var email = document.getElementById('fEmail').value.trim();
+  var subject = document.getElementById('fSubject').value;
+  var msg   = document.getElementById('fMsg').value.trim();
+  if (!first || !last || !email || !msg) { alert('Bitte fülle alle Pflichtfelder aus (auch Nachname – du brauchst ihn für den gwtChat-Login).'); return; }
+
+  var btn = this;
+  btn.disabled = true;
+  btn.style.opacity = '0.5';
+  try {
+    var caseNumber = await generateUniqueCaseNumber();
+    await addDoc(collection(db, 'contact_messages'), {
+      firstName: first,
+      lastName: last,
+      email: email,
+      subject: subject || '',
+      message: msg,
+      caseNumber: caseNumber,
+      createdAt: serverTimestamp(),
+      read: false
+    });
+    document.getElementById('successMsg').style.display = 'block';
+    var caseMsgEl = document.getElementById('successMsgCase');
+    caseMsgEl.textContent = '✓ Deine Vorgangsnummer: ' + caseNumber + ' — bitte notieren!';
+    caseMsgEl.style.display = 'block';
+    document.getElementById('gwtChatCallout').style.display = 'block';
+    document.getElementById('gwtChatCallout').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    alert('Senden fehlgeschlagen. Bitte versuch es später erneut oder schreib uns direkt per E-Mail.');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  }
+});
+
+(async function loadPageImages() {
+  const slots = document.querySelectorAll('[data-img-slot]');
+  if (!slots.length) return;
+  try {
+    const snap = await getDocs(collection(db, 'page_images'));
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data(); });
+    slots.forEach(el => {
+      const data = map[el.dataset.imgSlot];
+      if (data && data.url) {
+        el.classList.remove('empty');
+        el.innerHTML = '<img src="' + data.url + '" alt="' + (data.alt || '') + '" loading="lazy"/>';
+      }
+    });
+  } catch (e) {}
+})();
+</script>
+
+<script type="module" src="https://gymwentechnik.de/gwt-theme.js"></script>
+</body>
+</html>

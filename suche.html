@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <script src="https://gymwentechnik.de/gwt-global.js" defer>
+  // Dark/Light-Mode-Umschalter
+  (function(){
+    var stored=localStorage.getItem('gwt_theme');
+    if(stored==='light')document.body.classList.add('light');
+    var btn=document.getElementById('themeToggleBtn');
+    if(btn){
+      btn.textContent=document.body.classList.contains('light')?'\u2600\ufe0f':'\U0001f319';
+      btn.addEventListener('click',function(){
+        var isLight=document.body.classList.toggle('light');
+        localStorage.setItem('gwt_theme',isLight?'light':'dark');
+        btn.textContent=isLight?'\u2600\ufe0f':'\U0001f319';
+      });
+    }
+  })();
+</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suche – GymWenTechnik</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root{--black:#2C2C3A;--dark:#23232f;--mid:#1e1e28;--border:#3a3a4a;--text:#d4d0c8;--muted:#8888a0;--accent:#1EAE95;--accent2:#B01C75;--white:#f0ece3;}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--black);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;line-height:1.7;overflow-x:hidden;cursor:none;}
+    #cursor{width:12px;height:12px;background:var(--accent);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;mix-blend-mode:difference;}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:rgba(44,44,58,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:0.12em;color:var(--accent);text-decoration:none;}
+    .nav-logo span{color:var(--white);}
+    .nav-links{display:flex;gap:2.5rem;list-style:none;}
+    .nav-links a{color:var(--muted);text-decoration:none;font-size:0.82rem;letter-spacing:0.15em;text-transform:uppercase;transition:color 0.2s;}
+    .nav-links a:hover,.nav-links a.active{color:var(--accent);}
+    .hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;padding:6px;cursor:pointer;z-index:300;}
+    .hamburger span{width:26px;height:2px;background:var(--text);display:block;}
+    .mobile-menu{display:none;position:fixed;inset:0;background:rgba(35,35,47,0.99);z-index:200;flex-direction:column;align-items:center;justify-content:center;gap:2.5rem;}
+    .mobile-menu.open{display:flex;}
+    .mobile-menu a{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--white);text-decoration:none;letter-spacing:0.1em;transition:color 0.2s;}
+    .mobile-menu a:hover{color:var(--accent);}
+    .close-menu{position:absolute;top:1.5rem;right:2rem;background:none;border:none;color:var(--white);font-size:2.8rem;cursor:pointer;}
+    main{padding:10rem 3rem 7rem;max-width:860px;margin:0 auto;}
+    .search-label{font-size:0.7rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;}
+    .search-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,7vw,6rem);color:var(--white);line-height:1;margin-bottom:2.5rem;}
+    .search-box{display:flex;gap:0.8rem;margin-bottom:3rem;}
+    .search-box input{flex:1;background:var(--mid);border:1px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-size:1.1rem;padding:1rem 1.4rem;outline:none;transition:border-color 0.2s;}
+    .search-box input:focus{border-color:var(--accent);}
+    .search-box button{background:var(--accent);color:var(--white);border:none;padding:1rem 2rem;font-family:'DM Sans',sans-serif;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:opacity 0.2s;}
+    .search-box button:hover{opacity:0.85;}
+    .search-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--muted);margin:2rem 0 0.8rem;padding-bottom:0.4rem;border-bottom:1px solid var(--border);}
+    .search-result{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;background:var(--mid);padding:1rem 1.4rem;margin-bottom:2px;text-decoration:none;color:var(--text);transition:background 0.2s;}
+    .search-result:hover{background:#282838;}
+    .search-result-title{font-size:0.92rem;color:var(--white);}
+    .search-result-meta{font-size:0.75rem;color:var(--muted);}
+    .search-result-badge{font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.15rem 0.5rem;border:1px solid;flex-shrink:0;}
+    .search-result-badge.event{color:var(--accent);border-color:var(--accent);}
+    .search-result-badge.news{color:var(--accent2);border-color:var(--accent2);}
+    .search-result-badge.galerie{color:#f39c12;border-color:#f39c12;}
+    .empty-state{color:var(--muted);font-size:0.9rem;padding:1.5rem 0;}
+    mark{background:rgba(30,174,149,0.25);color:var(--accent);border-radius:2px;padding:0 2px;}
+    footer{background:var(--dark);border-top:1px solid var(--border);padding:3rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;}
+    .footer-logo{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;color:var(--accent);letter-spacing:0.1em;}
+    .footer-text{font-size:0.78rem;color:var(--muted);}
+    .footer-legal{display:flex;gap:1.5rem;}
+    .footer-legal a{font-size:0.78rem;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+    .footer-legal a:hover{color:var(--accent);}
+
+    body.light { --black:#f5f5f5; --dark:#ffffff; --mid:#ebebeb; --border:#d0d0d0; --text:#2a2a2a; --muted:#888; --white:#1a1a1a; background:var(--black); }
+    body.light nav { background:rgba(245,245,245,0.97); }
+    .theme-toggle { background:none; border:1px solid var(--border); color:var(--muted); font-size:0.85rem; width:34px; height:34px; cursor:pointer; border-radius:50%; transition:all 0.2s; }
+    .theme-toggle:hover { border-color:var(--accent); color:var(--accent); }
+    @media(max-width:768px){nav{padding:1rem 1.5rem;}.nav-links{display:none;}.hamburger{display:flex;}main{padding:8rem 1.5rem 5rem;}footer{flex-direction:column;text-align:center;}}
+  </style>
+</head>
+<body>
+<div id="cursor"></div>
+<nav>
+  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
+  <ul class="nav-links">
+    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
+    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
+    <li><a href="https://gymwentechnik.de/news.html">News</a></li>
+    <li><a href="https://gymwentechnik.de/suche.html">🔍</a></li>
+    <li><a href="https://gymwentechnik.de/galerie.html">Galerie</a></li>
+    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
+    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
+  </ul>
+  <button class="hamburger" id="menuBtn"><span></span><span></span><span></span></button>
+  <button class="theme-toggle" id="themeToggleBtn" title="Dark/Light">🌙</button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close-menu" id="closeMenu">✕</button>
+  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
+  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
+  <a href="https://gymwentechnik.de/news.html">News</a>
+  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
+  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
+  <a href="https://gymwentechnik.de/suche.html">Suche</a>
+  <a href="https://gymwentechnik.de/intern.html">Intern</a>
+</div>
+<main>
+  <div class="search-label">Alles auf einen Blick</div>
+  <h1 class="search-title">Suche</h1>
+  <div class="search-box">
+    <input type="search" id="searchInput" placeholder="Events, News, Galerie…" autocomplete="off" />
+    <button id="searchBtn">Suchen</button>
+  </div>
+  <div id="searchResults"></div>
+</main>
+<footer>
+  <div class="footer-logo">GymWenTechnik</div>
+  <div class="footer-text">© 2026 Bühnentechnik Gymnasium Wendelstein</div>
+  <div class="footer-legal">
+    <a href="https://gymwentechnik.de/impressum.html">Impressum</a>
+    <a href="https://gymwentechnik.de/datenschutz.html">Datenschutz</a>
+  </div>
+</footer>
+<script>
+  var cursor=document.getElementById('cursor');
+  document.addEventListener('mousemove',function(e){cursor.style.left=(e.clientX-6)+'px';cursor.style.top=(e.clientY-6)+'px';});
+  var menuBtn=document.getElementById('menuBtn');
+  var closeBtn=document.getElementById('closeMenu');
+  var mobileMenu=document.getElementById('mobileMenu');
+  menuBtn.addEventListener('click',function(){mobileMenu.classList.add('open');});
+  closeBtn.addEventListener('click',function(){mobileMenu.classList.remove('open');});
+  mobileMenu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){mobileMenu.classList.remove('open');});});
+  // URL-Parameter vorbelegen
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('q'))document.getElementById('searchInput').value=params.get('q');
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app=initializeApp({
+  apiKey:"AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
+  authDomain:"gwt-database.firebaseapp.com",
+  projectId:"gwt-database",
+  storageBucket:"gwt-database.firebasestorage.app",
+  messagingSenderId:"410076918223",
+  appId:"1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
+});
+const db=getFirestore(app);
+
+function hl(text,q){
+  if(!q||!text)return text||'';
+  return text.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');
+}
+
+async function runSearch(q){
+  const el=document.getElementById('searchResults');
+  if(!q||q.trim().length<2){el.innerHTML='<p class="empty-state">Bitte mindestens 2 Zeichen eingeben.</p>';return;}
+  q=q.trim().toLowerCase();
+  el.innerHTML='<p class="empty-state">Suche läuft…</p>';
+  const [evSnap,newsSnap,galSnap]=await Promise.all([
+    getDocs(collection(db,'events')),
+    getDocs(collection(db,'news')),
+    getDocs(collection(db,'gallery'))
+  ]);
+  const events=evSnap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(e=>e.category!=='probe'&&(e.name||'').toLowerCase().includes(q)||(e.desc||'').toLowerCase().includes(q));
+  const newsItems=newsSnap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(n=>(n.title||'').toLowerCase().includes(q)||(n.body||'').toLowerCase().includes(q));
+  const galItems=galSnap.docs.map(d=>({id:d.id,...d.data()}))
+    .filter(g=>(g.alt||'').toLowerCase().includes(q));
+
+  let html='';
+  if(events.length){
+    html+='<div class="search-section-title">📅 Veranstaltungen ('+events.length+')</div>';
+    html+=events.map(e=>'<a class="search-result" href="https://gymwentechnik.de/veranstaltungen.html">'
+      +'<div><div class="search-result-title">'+hl(e.name,q)+'</div><div class="search-result-meta">'+hl(e.desc,q)+'</div></div>'
+      +'<span class="search-result-badge event">Event</span></a>').join('');
+  }
+  if(newsItems.length){
+    html+='<div class="search-section-title">📰 News ('+newsItems.length+')</div>';
+    html+=newsItems.map(n=>'<a class="search-result" href="https://gymwentechnik.de/news.html">'
+      +'<div><div class="search-result-title">'+hl(n.title,q)+'</div><div class="search-result-meta">'+hl((n.body||'').slice(0,100),q)+'</div></div>'
+      +'<span class="search-result-badge news">News</span></a>').join('');
+  }
+  if(galItems.length){
+    html+='<div class="search-section-title">🖼️ Galerie ('+galItems.length+')</div>';
+    html+=galItems.map(g=>'<a class="search-result" href="https://gymwentechnik.de/galerie.html">'
+      +'<div style="display:flex;gap:0.8rem;align-items:center">'
+      +(g.url?'<img src="'+g.url+'" style="width:48px;height:36px;object-fit:cover;flex-shrink:0" loading="lazy"/>':'')
+      +'<div><div class="search-result-title">'+hl(g.alt||'Foto',q)+'</div></div></div>'
+      +'<span class="search-result-badge galerie">Foto</span></a>').join('');
+  }
+  if(!events.length&&!newsItems.length&&!galItems.length){
+    html='<p class="empty-state">Keine Ergebnisse für „'+q.replace(/</g,'&lt;')+'". Versuch ein anderes Stichwort.</p>';
+  }
+  el.innerHTML=html;
+}
+
+document.getElementById('searchBtn').addEventListener('click',()=>runSearch(document.getElementById('searchInput').value));
+document.getElementById('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')runSearch(e.target.value);});
+// Auto-Suche bei URL-Parameter
+const initQ=new URLSearchParams(window.location.search).get('q');
+if(initQ)runSearch(initQ);
+</script>
+
+<script type="module" src="https://gymwentechnik.de/gwt-theme.js"></script>
+</body>
+</html>
