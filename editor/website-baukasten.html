@@ -292,6 +292,16 @@
   #loginSubmitBtn:hover{ background:var(--accent-hover); }
   #loginSubmitBtn:disabled{ opacity:.5; cursor:default; }
   #loginNote{ margin-top:18px; font-size:11.5px; color:var(--ink-faint); text-align:center; line-height:1.6; }
+
+  .user-chip{
+    display:flex; align-items:center; gap:6px; padding:6px 10px; border-radius:var(--r-sm);
+    background:var(--panel-sunken); border:1px solid var(--line); font-size:12px; color:var(--ink-soft);
+    white-space:nowrap; max-width:150px; overflow:hidden; cursor:pointer; font-family:var(--sans);
+    transition:border-color .15s, background .15s;
+  }
+  .user-chip:hover{ border-color:var(--line-strong); background:var(--panel); }
+  .user-chip .user-dot{ width:7px; height:7px; border-radius:50%; background:var(--success); flex:none; box-shadow:0 0 0 2px var(--success-soft); }
+  #userChipName{ overflow:hidden; text-overflow:ellipsis; }
 </style>
 </head>
 <body>
@@ -356,6 +366,16 @@
     </div>
     <input type="file" id="projectLoadInput" accept=".json" style="display:none;">
     <button class="btn btn-primary" id="downloadBtn">⬇ HTML herunterladen</button>
+    <div class="menu">
+      <button class="user-chip" id="userChip" title="Konto">
+        <span class="user-dot"></span>
+        <span id="userChipName">–</span>
+      </button>
+      <div class="menu-panel" id="userMenuPanel">
+        <div id="userMenuRole" style="padding:8px 10px;font-size:11px;color:var(--ink-faint);font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line);margin-bottom:4px;">–</div>
+        <button id="logoutBtn"><span class="ic">⏻</span>Ausloggen</button>
+      </div>
+    </div>
   </div>
 
   <div class="pagebar">
@@ -2295,6 +2315,12 @@
   document.addEventListener("click", function(e){
     var menu = document.getElementById("moreMenuPanel");
     if(menu && menu.classList.contains("open") && !e.target.closest(".menu")){ closeMoreMenu(); }
+    var umenu = document.getElementById("userMenuPanel");
+    if(umenu && umenu.classList.contains("open") && !e.target.closest(".menu")){ umenu.classList.remove("open"); }
+  });
+  document.getElementById("userChip").addEventListener("click", function(e){
+    e.stopPropagation();
+    document.getElementById("userMenuPanel").classList.toggle("open");
   });
 
   document.getElementById("templatesBtn").addEventListener("click", openTemplatesModal);
@@ -2503,10 +2529,24 @@ onAuthStateChanged(auth, async (user) => {
     appEl.classList.add('unlocked');
     btnEl.disabled = false;
     btnEl.textContent = 'Einloggen';
+    const chipName = document.getElementById('userChipName');
+    if(chipName) chipName.textContent = profile.displayName || profile.username || user.email;
+    const chip = document.getElementById('userChip');
+    if(chip) chip.title = 'Eingeloggt als ' + (profile.displayName || profile.username) + ' (' + user.email + ')';
+    const roleLabels = {admin:'Admin', verwaltendes:'Verwaltendes Mitglied', vertrauensvolles:'Vertrauensvolles Mitglied', einfaches:'Einfaches Mitglied'};
+    const roleEl = document.getElementById('userMenuRole');
+    if(roleEl) roleEl.textContent = roleLabels[profile.role] || profile.role;
   }catch(err){
     showError('Fehler beim Laden des Profils: ' + err.message);
     await signOut(auth);
   }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  if(!confirm('Wirklich ausloggen? Dein Projekt bleibt lokal in diesem Browser gespeichert.')) return;
+  await signOut(auth);
+  emailEl.value = '';
+  passEl.value = '';
 });
 </script>
 </body>
