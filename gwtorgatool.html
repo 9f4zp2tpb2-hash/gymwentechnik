@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>gwtOrgatool – GymWenTechnik</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f4f5f7; --panel:#ffffff; --panel-sunken:#f0f1f4; --line:#e2e4e9; --line-strong:#cfd2da;
+    --ink:#1a1c22; --ink-soft:#585d68; --ink-faint:#9498a3;
+    --accent:#1EAE95; --accent-hover:#189b84; --accent-soft:#e3f6f2;
+    --accent2:#B01C75; --accent2-soft:#fbe6f1;
+    --warn:#f39c12; --warn-soft:#fdf1de;
+    --danger:#d64545; --danger-soft:#fbe9e9;
+    --success:#21860E; --success-soft:#e6f4e3;
+    --r-sm:8px; --r-md:12px; --r-lg:16px;
+    --shadow-sm:0 1px 2px rgba(20,20,30,0.05);
+    --shadow-md:0 4px 16px rgba(20,20,30,0.08);
+    --shadow-lg:0 12px 40px rgba(20,20,30,0.14);
+    --sans:'Inter',-apple-system,sans-serif;
+    --display:'Space Grotesk',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:14px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  /* ===== LOGIN ===== */
+  #loginScreen{
+    position:fixed; inset:0; z-index:500; background:
+      radial-gradient(circle at 20% 20%, var(--accent-soft) 0%, transparent 45%),
+      radial-gradient(circle at 80% 80%, var(--accent2-soft) 0%, transparent 45%),
+      var(--bg);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  #loginScreen.hidden{display:none;}
+  .login-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--r-lg);
+    box-shadow:var(--shadow-lg); padding:44px 40px; width:100%; max-width:380px;
+  }
+  .login-logo{display:flex;align-items:center;gap:10px;justify-content:center;margin-bottom:26px;}
+  .login-logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--accent),var(--accent2));flex:none;}
+  .login-logo span{font-family:var(--display);font-weight:700;font-size:19px;letter-spacing:-0.01em;}
+  .login-logo .tag{font-size:10px;color:var(--ink-faint);font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin-left:2px;}
+  .login-card h1{font-family:var(--display);font-size:20px;font-weight:600;margin:0 0 6px;text-align:center;}
+  .login-card>p{font-size:13px;color:var(--ink-soft);margin:0 0 26px;text-align:center;line-height:1.6;}
+  .login-field{display:flex;flex-direction:column;gap:5px;margin-bottom:15px;}
+  .login-field label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-faint);}
+  .login-field input{
+    border:1px solid var(--line); border-radius:var(--r-sm); padding:11px 13px; font-size:14px;
+    background:var(--panel-sunken); color:var(--ink); transition:border-color .15s, background .15s;
+  }
+  .login-field input:focus{outline:none;border-color:var(--accent);background:var(--panel);}
+  #loginErr{
+    display:none; font-size:12.5px; color:var(--danger); background:var(--danger-soft);
+    border-radius:var(--r-sm); padding:10px 12px; margin-bottom:15px; line-height:1.5;
+  }
+  #loginErr.info{color:var(--warn);background:var(--warn-soft);}
+  #loginBtn{
+    width:100%; padding:12px; border:none; border-radius:var(--r-sm); background:var(--accent);
+    color:#fff; font-weight:600; font-size:14px; transition:background .15s; margin-top:6px;
+  }
+  #loginBtn:hover{background:var(--accent-hover);}
+  #loginBtn:disabled{opacity:.5;cursor:default;}
+  .login-footer{margin-top:20px;font-size:11.5px;color:var(--ink-faint);text-align:center;line-height:1.6;}
+  .login-footer a{color:var(--accent);text-decoration:none;}
+
+  /* ===== APP SHELL ===== */
+  #app{display:none;height:100vh;grid-template-columns:240px 1fr;}
+  #app.unlocked{display:grid;}
+
+  /* SIDEBAR */
+  .sidebar{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;overflow:hidden;}
+  .sidebar-head{padding:20px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;}
+  .sidebar-head .mark{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));flex:none;}
+  .sidebar-head span{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:-0.01em;}
+  .sidebar-search{padding:12px 14px;}
+  .sidebar-search input{
+    width:100%;border:1px solid var(--line);border-radius:var(--r-sm);padding:8px 10px 8px 30px;font-size:12.5px;
+    background:var(--panel-sunken);color:var(--ink);
+  }
+  .sidebar-search-wrap{position:relative;}
+  .sidebar-search-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--ink-faint);font-size:13px;pointer-events:none;}
+  .sidebar-search kbd{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9.5px;color:var(--ink-faint);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:1px 5px;pointer-events:none;}
+  .sidebar-nav{flex:1;overflow-y:auto;padding:6px 10px;}
+  .nav-group{margin-bottom:4px;}
+  .nav-group-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-faint);padding:14px 10px 6px;}
+  .nav-item{
+    display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--r-sm);color:var(--ink-soft);
+    text-decoration:none;font-size:13.5px;font-weight:500;cursor:pointer;transition:background .12s,color .12s;border:none;background:none;width:100%;text-align:left;
+  }
+  .nav-item:hover{background:var(--panel-sunken);color:var(--ink);}
+  .nav-item.active{background:var(--accent-soft);color:var(--accent-hover);}
+  .nav-item .ic{width:18px;text-align:center;flex:none;font-size:14px;}
+  .nav-item .badge{margin-left:auto;background:var(--accent2);color:#fff;font-size:10px;font-weight:700;border-radius:100px;padding:1px 6px;min-width:16px;text-align:center;}
+  .sidebar-foot{border-top:1px solid var(--line);padding:10px;}
+  .user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--r-sm);cursor:pointer;transition:background .12s;position:relative;}
+  .user-card:hover{background:var(--panel-sunken);}
+  .user-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent-hover);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:700;font-size:13px;flex:none;overflow:hidden;}
+  .user-avatar img{width:100%;height:100%;object-fit:cover;}
+  .user-card-text{flex:1;min-width:0;}
+  .user-card-name{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .user-card-role{font-size:10.5px;color:var(--ink-faint);}
+  .user-menu{
+    position:absolute;bottom:calc(100% + 6px);left:0;right:0;background:var(--panel);border:1px solid var(--line);
+    border-radius:var(--r-md);box-shadow:var(--shadow-lg);padding:6px;display:none;flex-direction:column;gap:1px;z-index:50;
+  }
+  .user-menu.open{display:flex;}
+  .user-menu button{display:flex;align-items:center;gap:8px;padding:8px 10px;border:none;background:none;border-radius:var(--r-sm);font-size:12.5px;color:var(--ink-soft);text-align:left;}
+  .user-menu button:hover{background:var(--panel-sunken);color:var(--ink);}
+  .user-menu button.danger{color:var(--danger);}
+  .user-menu button.danger:hover{background:var(--danger-soft);}
+
+  /* MAIN */
+  .main{overflow-y:auto;display:flex;flex-direction:column;}
+  .topbar{
+    background:var(--panel);border-bottom:1px solid var(--line);padding:16px 28px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:10;
+  }
+  .topbar h1{font-family:var(--display);font-size:19px;font-weight:600;}
+  .topbar-sub{font-size:12px;color:var(--ink-faint);margin-top:2px;}
+  .content{padding:28px;flex:1;}
+
+  .hamburger-btn{display:none;background:var(--panel-sunken);border:1px solid var(--line);border-radius:var(--r-sm);width:34px;height:34px;align-items:center;justify-content:center;font-size:15px;flex:none;}
+
+  /* CARDS / WIDGETS */
+  .grid{display:grid;gap:16px;}
+  .grid-2{grid-template-columns:repeat(2,1fr);}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-4{grid-template-columns:repeat(4,1fr);}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-sm);}
+  .card-title{font-family:var(--display);font-size:14.5px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+  .card-title a{font-size:11.5px;color:var(--accent);text-decoration:none;font-weight:500;}
+  .stat-card{padding:18px 20px;}
+  .stat-num{font-family:var(--display);font-size:28px;font-weight:700;line-height:1;}
+  .stat-label{font-size:12px;color:var(--ink-faint);margin-top:6px;}
+  .stat-card.accent{background:linear-gradient(135deg,var(--accent-soft),var(--panel));}
+  .stat-card.accent2{background:linear-gradient(135deg,var(--accent2-soft),var(--panel));}
+
+  .list-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .list-row:last-child{border-bottom:none;}
+  .list-row-dot{width:8px;height:8px;border-radius:50%;flex:none;}
+  .list-row-dot.event{background:var(--accent);}
+  .list-row-dot.buehne{background:var(--accent2);}
+  .list-row-dot.probe{background:var(--warn);}
+  .list-row-text{flex:1;min-width:0;}
+  .list-row-title{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .list-row-meta{font-size:11.5px;color:var(--ink-faint);}
+  .empty-hint{color:var(--ink-faint);font-size:12.5px;padding:18px 0;text-align:center;}
+
+  .todo-row{display:flex;align-items:center;gap:10px;padding:8px 0;}
+  .todo-check{width:18px;height:18px;border:1.5px solid var(--line-strong);border-radius:5px;flex:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;transition:all .15s;}
+  .todo-check.done{background:var(--accent);border-color:var(--accent);}
+  .todo-text{flex:1;font-size:13px;}
+  .todo-text.done{color:var(--ink-faint);text-decoration:line-through;}
+
+  .skel{position:relative;overflow:hidden;background:var(--panel-sunken);border-radius:var(--r-sm);}
+  .skel::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.7),transparent);background-size:300px 100%;animation:shimmer 1.4s infinite;}
+  @keyframes shimmer{0%{background-position:-300px 0}100%{background-position:300px 0}}
+  .skel-line{height:12px;margin-bottom:8px;}
+
+  .placeholder-view{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;text-align:center;color:var(--ink-faint);}
+  .placeholder-view .ic{font-size:40px;margin-bottom:14px;opacity:0.5;}
+  .placeholder-view h2{font-family:var(--display);font-size:17px;color:var(--ink-soft);margin-bottom:6px;}
+  .placeholder-view p{font-size:13px;max-width:340px;}
+
+  .spinner{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,0.35);border-top-color:#fff;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* MOBILE */
+  @media (max-width:900px){
+    #app.unlocked{display:block;}
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:200;transform:translateX(-100%);transition:transform .25s;}
+    .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-lg);}
+    .hamburger-btn{display:flex;}
+    .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
+    .content{padding:18px;}
+    .topbar{padding:14px 18px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="mark"></span>
+      <span>gwtOrgatool</span>
+    </div>
+    <h1>Anmeldung</h1>
+    <p>Das neue Organisationstool der GymWenTechnik.<br>Melde dich mit deinem bestehenden Konto an.</p>
+    <div id="loginErr"></div>
+    <div class="login-field">
+      <label>E-Mail-Adresse</label>
+      <input type="email" id="loginEmail" autocomplete="username" placeholder="vorname.nachname@gymwentechnik.de">
+    </div>
+    <div class="login-field">
+      <label>Passwort</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Passwort">
+    </div>
+    <button id="loginBtn">Einloggen</button>
+    <div class="login-footer">Gleiches Konto wie im <a href="https://gymwentechnik.de/intern.html">bisherigen internen Bereich</a>. Neue Konten werden dort registriert.</div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <span class="mark"></span>
+      <span>gwtOrgatool</span>
+    </div>
+    <div class="sidebar-search">
+      <div class="sidebar-search-wrap">
+        <input type="text" id="globalSearch" placeholder="Suchen…">
+        <kbd>Strg K</kbd>
+      </div>
+    </div>
+    <nav class="sidebar-nav" id="sidebarNav"></nav>
+    <div class="sidebar-foot">
+      <div class="user-card" id="userCard">
+        <div class="user-avatar" id="userAvatar">–</div>
+        <div class="user-card-text">
+          <div class="user-card-name" id="userCardName">–</div>
+          <div class="user-card-role" id="userCardRole">–</div>
+        </div>
+        <div class="user-menu" id="userMenu">
+          <button id="logoutBtn"><span>⏻</span>Ausloggen</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="hamburger-btn" id="hamburgerBtn">☰</button>
+        <div>
+          <h1 id="viewTitle">Dashboard</h1>
+          <div class="topbar-sub" id="viewSub"></div>
+        </div>
+      </div>
+    </div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+
+const app = initializeApp({
+  apiKey:'AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU',
+  authDomain:'gwt-database.firebaseapp.com',
+  projectId:'gwt-database',
+  storageBucket:'gwt-database.firebasestorage.app',
+  messagingSenderId:'410076918223',
+  appId:'1:410076918223:web:3c7bb9a2084fdc83b9a2ba'
+});
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const RLABELS = {admin:'Admin', verwaltendes:'Verwaltendes Mitglied', vertrauensvolles:'Vertrauensvolles Mitglied', einfaches:'Einfaches Mitglied', pending:'Warten auf Freischaltung', inactive:'Deaktiviert'};
+const PERMS = {
+  admin:['materials','events_view','events_manage','gallery_manage','users_manage','dienstplan','messages_view','bilder_editor'],
+  verwaltendes:['materials','events_view','events_manage','gallery_manage','dienstplan','messages_view','bilder_editor'],
+  vertrauensvolles:['materials','events_view','dienstplan'],
+  einfaches:['materials','dienstplan'],
+  pending:[], inactive:[]
+};
+let CU = null; // current user profile + uid
+
+function can(p){ return CU && PERMS[CU.role] && PERMS[CU.role].includes(p); }
+
+/* ===== DATE HELPERS (gleiche Logik wie intern.html, damit Status/Sortierung identisch bleiben) ===== */
+const MONATE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+function parseDmy(s){
+  if(!s) return null;
+  const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(s.trim());
+  if(!m) return null;
+  const d = new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+  d.setHours(0,0,0,0);
+  return d;
+}
+function formatLong(d){ return d.getDate()+'. '+MONATE[d.getMonth()]+' '+d.getFullYear(); }
+function evDateLabel(ev){
+  if(ev.dateMode==='soon') return 'Bald';
+  const start = parseDmy(ev.startDate);
+  if(!start) return ev.startDate || '';
+  if(ev.dateMode==='range'){
+    const end = parseDmy(ev.endDate);
+    if(end) return formatLong(start)+' – '+formatLong(end);
+  }
+  return formatLong(start);
+}
+function evStatus(ev){
+  if(ev.dateMode==='soon') return 'upcoming';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const start = parseDmy(ev.startDate);
+  const end = ev.dateMode==='range' ? parseDmy(ev.endDate) : start;
+  if(!start) return 'upcoming';
+  if(today < start) return 'upcoming';
+  if(end && today > end) return 'done';
+  if(end && today >= start && today <= end) return 'running';
+  return today.getTime()===start.getTime() ? 'running' : 'done';
+}
+function evSortKey(ev){
+  if(ev.dateMode==='soon') return Infinity-1;
+  const start = parseDmy(ev.startDate);
+  return start ? start.getTime() : Infinity;
+}
+function fmtTimestamp(ts){
+  if(!ts || !ts.toDate) return '';
+  const d = ts.toDate();
+  return d.toLocaleDateString('de-DE') + ' · ' + d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+}
+
+/* ===== AUTH ===== */
+const loginScreen = document.getElementById('loginScreen');
+const appEl = document.getElementById('app');
+const loginErr = document.getElementById('loginErr');
+const loginBtn = document.getElementById('loginBtn');
+const emailEl = document.getElementById('loginEmail');
+const passEl = document.getElementById('loginPassword');
+
+function showLoginErr(msg, type){
+  loginErr.textContent = msg;
+  loginErr.className = type==='info' ? 'info' : '';
+  loginErr.style.display = 'block';
+}
+function clearLoginErr(){ loginErr.style.display = 'none'; }
+
+async function doLogin(){
+  const email = emailEl.value.trim();
+  const password = passEl.value;
+  if(!email || !password){ showLoginErr('Bitte E-Mail und Passwort eingeben.'); return; }
+  clearLoginErr();
+  loginBtn.disabled = true;
+  loginBtn.innerHTML = '<span class="spinner"></span>Prüfe…';
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+  }catch(err){
+    let msg = 'Anmeldung fehlgeschlagen.';
+    if(['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(err.code)) msg = 'Falsche E-Mail-Adresse oder Passwort.';
+    else if(err.code==='auth/too-many-requests') msg = 'Zu viele Fehlversuche. Bitte später erneut versuchen.';
+    else if(err.code==='auth/invalid-email') msg = 'Ungültige E-Mail-Adresse.';
+    showLoginErr(msg);
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Einloggen';
+  }
+}
+loginBtn.addEventListener('click', doLogin);
+passEl.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+emailEl.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await signOut(auth);
+});
+
+onAuthStateChanged(auth, async (user) => {
+  if(!user){
+    CU = null;
+    loginScreen.classList.remove('hidden');
+    appEl.classList.remove('unlocked');
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Einloggen';
+    return;
+  }
+  try{
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if(!snap.exists()){
+      showLoginErr('Kein Profil für dieses Konto gefunden. Bitte einen Admin kontaktieren.');
+      await signOut(auth);
+      return;
+    }
+    const profile = snap.data();
+    if(profile.role === 'pending'){
+      showLoginErr('Dein Konto wartet noch auf Freischaltung durch einen Admin.', 'info');
+      await signOut(auth);
+      return;
+    }
+    if(profile.role === 'inactive'){
+      showLoginErr('Dein Konto wurde deaktiviert. Bitte wende dich an einen Admin.');
+      await signOut(auth);
+      return;
+    }
+    CU = { id: user.uid, ...profile };
+    loginScreen.classList.add('hidden');
+    appEl.classList.add('unlocked');
+    renderUserCard();
+    buildSidebarNav();
+    router();
+  }catch(err){
+    showLoginErr('Fehler beim Laden des Profils: ' + err.message);
+    await signOut(auth);
+  }
+});
+
+function renderUserCard(){
+  const avatarEl = document.getElementById('userAvatar');
+  if(CU.avatarUrl){
+    avatarEl.innerHTML = '<img src="'+CU.avatarUrl+'" alt=""/>';
+  } else {
+    avatarEl.textContent = (CU.displayName || CU.username || '?').charAt(0).toUpperCase();
+  }
+  document.getElementById('userCardName').textContent = CU.displayName || CU.username;
+  document.getElementById('userCardRole').textContent = RLABELS[CU.role] || CU.role;
+}
+document.getElementById('userCard').addEventListener('click', (e) => {
+  if(e.target.closest('#userMenu button')) return;
+  document.getElementById('userMenu').classList.toggle('open');
+});
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('userMenu');
+  if(menu.classList.contains('open') && !e.target.closest('#userCard')) menu.classList.remove('open');
+});
+
+/* ===== NAVIGATION / ROUTING ===== */
+const NAV_GROUPS = [
+  { label:'Übersicht', items:[
+    { id:'dashboard', label:'Dashboard', icon:'⌂' }
+  ]},
+  { label:'Kommunikation', items:[
+    { id:'chat', label:'Team-Chat', icon:'💬' },
+    { id:'nachrichten', label:'Nachrichten', icon:'✉️', perm:'messages_view' }
+  ]},
+  { label:'Organisation', items:[
+    { id:'events', label:'Veranstaltungen', icon:'📅', perm:'events_view' },
+    { id:'todos', label:'ToDos', icon:'✅' },
+    { id:'inventar', label:'Inventar', icon:'📦' },
+    { id:'zustaendigkeit', label:'Zuständigkeit', icon:'🛠️', perm:'dienstplan' }
+  ]},
+  { label:'Inhalte', items:[
+    { id:'news', label:'News', icon:'📰', perm:'events_view' },
+    { id:'galerie', label:'Galerie', icon:'🖼️', perm:'gallery_manage' },
+    { id:'materialien', label:'Materialien', icon:'📁' }
+  ]},
+  { label:'Verwaltung', items:[
+    { id:'benutzer', label:'Benutzer', icon:'👥', perm:'users_manage' }
+  ]},
+  { label:'Account', items:[
+    { id:'konto', label:'Mein Konto', icon:'⚙️' }
+  ]}
+];
+
+const VIEW_TITLES = {
+  dashboard:['Dashboard','Dein Überblick für heute'],
+  chat:['Team-Chat','Main-Chat, Direktnachrichten und Gruppen'],
+  nachrichten:['Nachrichten','Kontaktanfragen von der Website'],
+  events:['Veranstaltungen','Events, Proben und Bühnenbelegung'],
+  todos:['ToDos','Gemeinsame Aufgabenliste des Teams'],
+  inventar:['Inventar','Equipment-Status auf einen Blick'],
+  zustaendigkeit:['Zuständigkeit','Wer ist für welchen Bereich zuständig'],
+  news:['News','Neuigkeiten für die öffentliche Seite'],
+  galerie:['Galerie','Fotos und Videos verwalten'],
+  materialien:['Materialien','Dateien und Dokumente'],
+  benutzer:['Benutzer','Mitglieder und Rollen verwalten'],
+  konto:['Mein Konto','Profil, Passwort und Einstellungen']
+};
+
+function buildSidebarNav(){
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = '';
+  NAV_GROUPS.forEach(group => {
+    const visibleItems = group.items.filter(item => !item.perm || can(item.perm));
+    if(!visibleItems.length) return;
+    const groupEl = document.createElement('div');
+    groupEl.className = 'nav-group';
+    groupEl.innerHTML = '<div class="nav-group-label">'+group.label+'</div>';
+    visibleItems.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'nav-item';
+      btn.dataset.view = item.id;
+      btn.innerHTML = '<span class="ic">'+item.icon+'</span><span>'+item.label+'</span>';
+      btn.addEventListener('click', () => { window.location.hash = '#/'+item.id; });
+      groupEl.appendChild(btn);
+    });
+    nav.appendChild(groupEl);
+  });
+}
+
+function setActiveNav(viewId){
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === viewId);
+  });
+}
+
+function router(){
+  if(!CU) return;
+  const hash = window.location.hash.replace('#/', '') || 'dashboard';
+  const [viewId] = hash.split('/');
+  const titles = VIEW_TITLES[viewId] || ['Unbekannt',''];
+  document.getElementById('viewTitle').textContent = titles[0];
+  document.getElementById('viewSub').textContent = titles[1];
+  setActiveNav(viewId);
+  document.getElementById('sidebar').classList.remove('open');
+  renderView(viewId);
+}
+window.addEventListener('hashchange', router);
+
+/* ===== VIEW RENDERING ===== */
+const VIEW_RENDERERS = {}; // wird von weiteren Modulen befüllt (Phase 2+)
+
+function renderView(viewId){
+  const content = document.getElementById('content');
+  if(viewId === 'dashboard'){ renderDashboard(content); return; }
+  if(VIEW_RENDERERS[viewId]){ VIEW_RENDERERS[viewId](content); return; }
+  content.innerHTML =
+    '<div class="placeholder-view">'
+    +'<div class="ic">🚧</div>'
+    +'<h2>'+((VIEW_TITLES[viewId]||['Dieser Bereich'])[0])+' folgt bald</h2>'
+    +'<p>Dieser Teil von gwtOrgatool ist noch im Aufbau. Nutze bis dahin weiterhin den <a href="https://gymwentechnik.de/intern.html" style="color:var(--accent)">bisherigen internen Bereich</a>.</p>'
+    +'</div>';
+}
+
+/* ===== DASHBOARD ===== */
+async function renderDashboard(content){
+  content.innerHTML =
+    '<div class="grid grid-4" style="margin-bottom:16px">'
+    +'<div class="card stat-card accent"><div class="stat-num" id="statUpcoming">–</div><div class="stat-label">Anstehende Events</div></div>'
+    +'<div class="card stat-card"><div class="stat-num" id="statTodos">–</div><div class="stat-label">Offene ToDos</div></div>'
+    +'<div class="card stat-card"><div class="stat-num" id="statInventory">–</div><div class="stat-label">Defekte Geräte</div></div>'
+    +'<div class="card stat-card accent2"><div class="stat-num" id="statMembers">–</div><div class="stat-label">Aktive Mitglieder</div></div>'
+    +'</div>'
+    +'<div class="grid grid-2">'
+    +'<div class="card"><div class="card-title">Nächste Veranstaltungen<a href="#/events">Alle ansehen →</a></div><div id="dashEvents"><div class="skel skel-line" style="width:90%"></div><div class="skel skel-line" style="width:70%"></div><div class="skel skel-line" style="width:80%"></div></div></div>'
+    +'<div class="card"><div class="card-title">Offene ToDos<a href="#/todos">Alle ansehen →</a></div><div id="dashTodos"><div class="skel skel-line" style="width:85%"></div><div class="skel skel-line" style="width:60%"></div></div></div>'
+    +'</div>';
+
+  loadDashboardData();
+}
+
+async function loadDashboardData(){
+  try{
+    const [evSnap, todoSnap, invSnap, userSnap] = await Promise.all([
+      getDocs(collection(db,'events')),
+      getDocs(collection(db,'todos')),
+      getDocs(collection(db,'inventory')),
+      getDocs(collection(db,'users'))
+    ]);
+
+    const events = evSnap.docs.map(d => ({id:d.id, ...d.data()}))
+      .filter(ev => ev.category !== 'probe' || can('events_view'))
+      .sort((a,b) => evSortKey(a)-evSortKey(b));
+    const upcoming = events.filter(ev => evStatus(ev) !== 'done');
+
+    const todos = todoSnap.docs.map(d => ({id:d.id, ...d.data()}));
+    const openTodos = todos.filter(t => !t.done);
+
+    const inventory = invSnap.docs.map(d => ({id:d.id, ...d.data()}));
+    const broken = inventory.filter(i => i.status === 'broken');
+
+    const users = userSnap.docs.map(d => d.data());
+    const activeUsers = users.filter(u => u.role && u.role !== 'pending' && u.role !== 'inactive');
+
+    document.getElementById('statUpcoming').textContent = upcoming.length;
+    document.getElementById('statTodos').textContent = openTodos.length;
+    document.getElementById('statInventory').textContent = broken.length;
+    document.getElementById('statMembers').textContent = activeUsers.length;
+
+    const evEl = document.getElementById('dashEvents');
+    const nextEvents = upcoming.slice(0,5);
+    evEl.innerHTML = nextEvents.length ? nextEvents.map(ev =>
+      '<div class="list-row">'
+      +'<div class="list-row-dot '+(ev.category||'event')+'"></div>'
+      +'<div class="list-row-text"><div class="list-row-title">'+ev.name+'</div><div class="list-row-meta">'+evDateLabel(ev)+'</div></div>'
+      +'</div>'
+    ).join('') : '<div class="empty-hint">Keine anstehenden Veranstaltungen.</div>';
+
+    const todoEl = document.getElementById('dashTodos');
+    const nextTodos = openTodos.slice(0,6);
+    todoEl.innerHTML = nextTodos.length ? nextTodos.map(t =>
+      '<div class="todo-row"><div class="todo-check" data-todoid="'+t.id+'"></div><div class="todo-text">'+(t.text||'').replace(/</g,'&lt;')+'</div></div>'
+    ).join('') : '<div class="empty-hint">Keine offenen ToDos – gut gemacht!</div>';
+    todoEl.querySelectorAll('[data-todoid]').forEach(el => {
+      el.addEventListener('click', async () => {
+        await updateDoc(doc(db,'todos', el.dataset.todoid), { done: true });
+        loadDashboardData();
+      });
+    });
+  }catch(err){
+    document.getElementById('dashEvents').innerHTML = '<div class="empty-hint">Fehler beim Laden: '+err.message+'</div>';
+  }
+}
+
+/* ===== SIDEBAR TOGGLE (mobil) ===== */
+document.getElementById('hamburgerBtn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ===== COMMAND PALETTE (Grundgerüst – Suche folgt in Phase 2) ===== */
+document.addEventListener('keydown', (e) => {
+  if((e.ctrlKey || e.metaKey) && e.key === 'k'){
+    e.preventDefault();
+    document.getElementById('globalSearch').focus();
+  }
+});
+</script>
+</body>
+</html>
