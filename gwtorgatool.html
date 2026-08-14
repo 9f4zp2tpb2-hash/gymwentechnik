@@ -174,12 +174,105 @@
   @keyframes spin{to{transform:rotate(360deg)}}
 
   /* MOBILE */
+  /* ===== SHARED FORM COMPONENTS ===== */
+  .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+  .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;}
+  .field-group{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+  .field-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-faint);}
+  .field-group input,.field-group select,.field-group textarea{
+    border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;font-size:13.5px;
+    background:var(--panel-sunken);color:var(--ink);transition:border-color .15s,background .15s;width:100%;
+  }
+  .field-group input:focus,.field-group select:focus,.field-group textarea:focus{outline:none;border-color:var(--accent);background:var(--panel);}
+  .btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--r-sm);padding:10px 20px;font-size:13.5px;font-weight:600;transition:background .15s;}
+  .btn-primary:hover{background:var(--accent-hover);}
+  .btn-primary:disabled{opacity:.6;pointer-events:none;}
+  .btn-secondary{background:var(--panel-sunken);color:var(--ink-soft);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 18px;font-size:13.5px;font-weight:500;transition:all .15s;}
+  .btn-secondary:hover{background:var(--panel);border-color:var(--line-strong);color:var(--ink);}
+  .filter-chip{background:var(--panel-sunken);border:1px solid var(--line);border-radius:100px;padding:6px 14px;font-size:12px;color:var(--ink-soft);margin-right:6px;margin-bottom:10px;transition:all .15s;}
+  .filter-chip:hover{border-color:var(--line-strong);}
+  .filter-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .tag-badge{font-size:10px;letter-spacing:0.05em;text-transform:uppercase;padding:2px 8px;border-radius:100px;background:var(--panel-sunken);color:var(--ink-faint);margin-left:6px;font-weight:600;}
+  .tag-badge.cat-event{background:var(--accent-soft);color:var(--accent-hover);}
+  .tag-badge.cat-buehne{background:var(--accent2-soft);color:var(--accent2);}
+  .tag-badge.cat-probe{background:var(--warn-soft);color:var(--warn);}
+
+  /* ===== EVENTS ===== */
+  .ev-row{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);}
+  .ev-row:last-child{border-bottom:none;}
+  .ev-row .list-row-dot{margin-top:5px;}
+  .ev-row-actions{display:flex;gap:6px;flex:none;}
+  .ev-row-actions button{background:var(--panel-sunken);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 12px;font-size:11.5px;color:var(--ink-soft);white-space:nowrap;}
+  .ev-row-actions button:hover{background:var(--panel);color:var(--ink);}
+  .ev-row-actions button.danger{color:var(--danger);}
+  .ev-row-actions button.danger:hover{background:var(--danger-soft);}
+  .shift-summary{font-size:11.5px;color:var(--ink-faint);margin-top:4px;}
+  .shift-row{display:grid;grid-template-columns:1.4fr 0.7fr 0.7fr 1fr auto;gap:6px;margin-bottom:6px;}
+  .shift-row input,.shift-row select{border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px;font-size:12.5px;background:var(--panel-sunken);color:var(--ink);}
+  .shift-row button{background:none;border:1px solid var(--danger);color:var(--danger);border-radius:var(--r-sm);font-size:11px;padding:6px 8px;}
+  .mat-picker{display:flex;flex-wrap:wrap;gap:8px;max-height:130px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r-sm);padding:10px;background:var(--panel-sunken);}
+  .mat-chip{display:flex;align-items:center;gap:6px;font-size:12px;background:var(--panel);border:1px solid var(--line);border-radius:100px;padding:5px 12px;}
+
+  /* ===== TEAM-CHAT ===== */
+  .chip-btn{background:var(--panel-sunken);border:1px solid var(--line);border-radius:100px;padding:5px 11px;font-size:11px;color:var(--ink-soft);transition:all .15s;}
+  .chip-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .chat-shell{display:flex;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel);height:calc(100vh - 170px);overflow:hidden;box-shadow:var(--shadow-sm);}
+  .chat-sidebar{width:270px;border-right:1px solid var(--line);display:flex;flex-direction:column;flex:none;}
+  .chat-sidebar-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);font-weight:600;font-size:13.5px;}
+  .chat-conv-list{flex:1;overflow-y:auto;}
+  .chat-conv-item{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;border-left:2px solid transparent;transition:background .12s;}
+  .chat-conv-item:hover{background:var(--panel-sunken);}
+  .chat-conv-item.active{background:var(--accent-soft);border-left-color:var(--accent);}
+  .chat-conv-avatar{width:34px;height:34px;border-radius:50%;background:var(--panel-sunken);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink-faint);flex:none;overflow:hidden;}
+  .chat-conv-avatar img{width:100%;height:100%;object-fit:cover;}
+  .chat-conv-text{flex:1;min-width:0;}
+  .chat-conv-name{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .chat-conv-sub{font-size:10.5px;color:var(--ink-faint);}
+  .chat-main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .chat-main-head{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .chat-main-title{font-family:var(--display);font-weight:600;font-size:15px;}
+  .chat-main-sub{font-size:11px;color:var(--ink-faint);}
+  .chat-thread{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px;}
+  .chat-bubble{display:flex;gap:8px;align-items:flex-start;max-width:78%;}
+  .chat-bubble.own{margin-left:auto;flex-direction:row-reverse;}
+  .chat-bubble-avatar{width:28px;height:28px;border-radius:50%;background:var(--panel-sunken);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink-faint);flex:none;overflow:hidden;}
+  .chat-bubble-avatar img{width:100%;height:100%;object-fit:cover;}
+  .chat-bubble-card{background:var(--panel-sunken);padding:9px 13px;border-radius:14px 14px 14px 4px;}
+  .chat-bubble.own .chat-bubble-card{background:var(--accent-soft);border-radius:14px 14px 4px 14px;}
+  .chat-bubble-name{font-size:11px;font-weight:600;color:var(--accent-hover);margin-bottom:2px;}
+  .chat-bubble-text{font-size:13px;white-space:pre-wrap;}
+  .chat-bubble-time{font-size:10px;color:var(--ink-faint);margin-top:3px;}
+  .chat-bubble.own .chat-bubble-content{text-align:right;}
+  .link-btn{background:none;border:none;color:var(--ink-faint);font-size:10px;padding:0;}
+  .link-btn:hover{color:var(--danger);}
+  .chat-input-row{display:flex;gap:10px;padding:14px 18px;border-top:1px solid var(--line);}
+  .chat-input-row textarea{flex:1;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;font-size:13px;background:var(--panel-sunken);color:var(--ink);resize:none;min-height:40px;max-height:110px;font-family:var(--sans);}
+  .chat-input-row textarea:focus{outline:none;border-color:var(--accent);}
+  .chat-voice-embed{flex:1;background:#000;}
+  .chat-voice-embed iframe{width:100%;height:100%;border:none;}
+
+  /* ===== GENERIC MODAL ===== */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,20,30,0.4);backdrop-filter:blur(3px);z-index:400;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--panel);border-radius:var(--r-lg);box-shadow:var(--shadow-lg);padding:26px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;}
+  .modal-box h3{font-family:var(--display);font-size:16px;font-weight:600;margin-bottom:16px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+  .modal-pick-list{max-height:220px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--r-sm);padding:6px;}
+  .modal-pick-row{padding:9px 10px;font-size:13px;cursor:pointer;border-radius:var(--r-sm);}
+  .modal-pick-row:hover{background:var(--panel-sunken);}
+  .modal-check-row{display:flex;align-items:center;gap:8px;padding:7px 8px;font-size:12.5px;}
+  .inv-status-select{border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 9px;font-size:12.5px;background:var(--panel-sunken);color:var(--ink);}
+
   @media (max-width:900px){
     #app.unlocked{display:block;}
     .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:200;transform:translateX(-100%);transition:transform .25s;}
     .sidebar.open{transform:translateX(0);box-shadow:var(--shadow-lg);}
     .hamburger-btn{display:flex;}
     .grid-2,.grid-3,.grid-4{grid-template-columns:1fr;}
+    .form-grid-2,.form-grid-3{grid-template-columns:1fr;}
+    .shift-row{grid-template-columns:1fr;}
+    .chat-shell{flex-direction:column;height:calc(100vh - 140px);}
+    .chat-sidebar{width:100%;max-height:180px;border-right:none;border-bottom:1px solid var(--line);}
     .content{padding:18px;}
     .topbar{padding:14px 18px;}
   }
@@ -254,7 +347,7 @@
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, where, onSnapshot, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const app = initializeApp({
@@ -507,7 +600,589 @@ function router(){
 window.addEventListener('hashchange', router);
 
 /* ===== VIEW RENDERING ===== */
-const VIEW_RENDERERS = {}; // wird von weiteren Modulen befüllt (Phase 2+)
+const VIEW_RENDERERS = {};
+
+/* ============================================================
+   MODUL: VERANSTALTUNGEN
+   ============================================================ */
+let EV_CACHE = [];
+let MAT_CACHE_EV = [];
+let EV_EDIT_ID = null;
+let EV_PENDING_SHIFTS = [];
+let EV_PENDING_MATERIALS = [];
+const EV_CAT_LABELS = { event:'Veranstaltung', probe:'Probe', buehne:'Bühnenbelegung' };
+const EV_STATUS_LABELS = { upcoming:'Anstehend', running:'Laufend', done:'Abgeschlossen' };
+
+VIEW_RENDERERS['events'] = function(content){
+  const cm = can('events_manage');
+  content.innerHTML =
+    '<div class="grid" style="grid-template-columns:1fr;gap:16px">'
+    + (cm ? eventFormHtml() : '')
+    + '<div class="card">'
+    +   '<div class="card-title">Alle Veranstaltungen</div>'
+    +   '<div class="ev-filter-row" id="evFilterRow"></div>'
+    +   '<div id="evList"><div class="skel skel-line" style="width:90%"></div><div class="skel skel-line" style="width:70%"></div></div>'
+    + '</div>'
+    + '</div>';
+  if(cm) wireEventForm();
+  loadEvents();
+};
+
+function eventFormHtml(){
+  return '<div class="card" id="evFormCard">'
+    + '<div class="card-title" id="evFormTitle">Neue Veranstaltung</div>'
+    + '<div class="form-grid-2">'
+    +   fieldHtml('Kategorie','select','evCategory',['event:Veranstaltung','probe:Probe (nur intern)','buehne:Bühnenbelegung (öffentlich)'])
+    +   fieldHtml('Name','text','evName','z.B. Sommerkonzert 2026')
+    + '</div>'
+    + fieldHtml('Beschreibung','text','evDesc','Kurzbeschreibung')
+    + '<div class="form-grid-3">'
+    +   fieldHtml('Datumsart','select','evDateMode',['single:Einzeldatum','range:Zeitspanne','soon:Bald'])
+    +   fieldHtml('Datum / Start','text','evStart','TT.MM.JJJJ')
+    +   fieldHtml('Ende','text','evEnd','TT.MM.JJJJ (nur bei Zeitspanne)')
+    + '</div>'
+    + fieldHtml('Tags (Komma-getrennt)','text','evTags','Ton, Licht')
+    + '<div style="margin-top:16px"><label class="field-label">Schichtplan</label><div id="evShiftList"></div>'
+    +   '<button type="button" class="btn-secondary" id="evAddShift">+ Schicht hinzufügen</button></div>'
+    + '<div style="margin-top:16px"><label class="field-label">Verknüpfte Materialien</label><div id="evMatPicker" class="mat-picker"></div></div>'
+    + '<div style="margin-top:18px;display:flex;gap:10px">'
+    +   '<button class="btn-primary" id="evSaveBtn">Speichern</button>'
+    +   '<button class="btn-secondary" id="evCancelBtn" style="display:none">Abbrechen</button>'
+    + '</div>'
+    + '</div>';
+}
+function fieldHtml(label,type,id,optionsOrPlaceholder){
+  if(type==='select'){
+    const opts = optionsOrPlaceholder.map(o=>{ const [v,l]=o.split(':'); return '<option value="'+v+'">'+l+'</option>'; }).join('');
+    return '<div class="field-group"><label class="field-label">'+label+'</label><select id="'+id+'">'+opts+'</select></div>';
+  }
+  return '<div class="field-group"><label class="field-label">'+label+'</label><input type="text" id="'+id+'" placeholder="'+optionsOrPlaceholder+'"></div>';
+}
+
+function renderShiftEditor(){
+  const el = document.getElementById('evShiftList');
+  if(!el) return;
+  el.innerHTML = EV_PENDING_SHIFTS.map((s,i)=>
+    '<div class="shift-row" data-idx="'+i+'">'
+    + '<input type="text" placeholder="Aufgabe" value="'+(s.task||'').replace(/"/g,'&quot;')+'" data-field="task">'
+    + '<input type="text" placeholder="Von" value="'+(s.from||'')+'" data-field="from">'
+    + '<input type="text" placeholder="Bis" value="'+(s.to||'')+'" data-field="to">'
+    + '<select data-field="assignee"><option value="">– niemand –</option>'+Object.keys(USER_MAP_CACHE||{}).map(u=>'<option value="'+u+'" '+(s.assignee===u?'selected':'')+'>'+(USER_MAP_CACHE[u]?.displayName||u)+'</option>').join('')+'</select>'
+    + '<button type="button" data-removeshift="'+i+'">✕</button>'
+    + '</div>'
+  ).join('') || '<div class="empty-hint" style="padding:8px 0">Noch keine Schichten.</div>';
+  el.querySelectorAll('.shift-row').forEach(row=>{
+    const idx = parseInt(row.dataset.idx);
+    row.querySelectorAll('[data-field]').forEach(inp=>inp.addEventListener('input', ()=>{ EV_PENDING_SHIFTS[idx][inp.dataset.field] = inp.value; }));
+  });
+  el.querySelectorAll('[data-removeshift]').forEach(b=>b.addEventListener('click', ()=>{ EV_PENDING_SHIFTS.splice(parseInt(b.dataset.removeshift),1); renderShiftEditor(); }));
+}
+
+async function renderMatPicker(){
+  const el = document.getElementById('evMatPicker');
+  if(!el) return;
+  if(!MAT_CACHE_EV.length){
+    const snap = await getDocs(collection(db,'materials'));
+    MAT_CACHE_EV = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  }
+  el.innerHTML = MAT_CACHE_EV.length ? MAT_CACHE_EV.map(m=>
+    '<label class="mat-chip"><input type="checkbox" value="'+m.id+'" '+(EV_PENDING_MATERIALS.includes(m.id)?'checked':'')+'> '+m.name+'</label>'
+  ).join('') : '<span class="empty-hint">Keine Materialien vorhanden.</span>';
+  el.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.addEventListener('change', ()=>{
+    if(cb.checked) EV_PENDING_MATERIALS.push(cb.value);
+    else EV_PENDING_MATERIALS = EV_PENDING_MATERIALS.filter(id=>id!==cb.value);
+  }));
+}
+
+function wireEventForm(){
+  document.getElementById('evDateMode').addEventListener('change', updateDateModeUI);
+  document.getElementById('evAddShift').addEventListener('click', ()=>{ EV_PENDING_SHIFTS.push({task:'',from:'',to:'',assignee:''}); renderShiftEditor(); });
+  document.getElementById('evSaveBtn').addEventListener('click', saveEvent);
+  document.getElementById('evCancelBtn').addEventListener('click', cancelEditEvent);
+  renderShiftEditor();
+  renderMatPicker();
+  updateDateModeUI();
+}
+function updateDateModeUI(){
+  const mode = document.getElementById('evDateMode').value;
+  document.getElementById('evEnd').closest('.field-group').style.display = mode==='range' ? 'flex' : 'none';
+  document.getElementById('evStart').closest('.field-group').style.display = mode==='soon' ? 'none' : 'flex';
+}
+
+async function saveEvent(){
+  const name = document.getElementById('evName').value.trim();
+  const desc = document.getElementById('evDesc').value.trim();
+  const category = document.getElementById('evCategory').value;
+  const dateMode = document.getElementById('evDateMode').value;
+  const startDate = document.getElementById('evStart').value.trim();
+  const endDate = document.getElementById('evEnd').value.trim();
+  const tags = document.getElementById('evTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  if(!name){ alert('Bitte einen Namen eingeben.'); return; }
+  if(dateMode!=='soon'){
+    if(!parseDmy(startDate)){ alert('Bitte Datum im Format TT.MM.JJJJ angeben.'); return; }
+    if(dateMode==='range' && !parseDmy(endDate)){ alert('Bitte Enddatum im Format TT.MM.JJJJ angeben.'); return; }
+  }
+  const shifts = EV_PENDING_SHIFTS.filter(s=>s.task && s.task.trim());
+  const payload = { name, desc, category, dateMode, startDate: dateMode==='soon'?'':startDate, endDate: dateMode==='range'?endDate:'', tags, shifts, materialIds: EV_PENDING_MATERIALS };
+  const btn = document.getElementById('evSaveBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Speichert…';
+  try{
+    if(EV_EDIT_ID){ await updateDoc(doc(db,'events',EV_EDIT_ID), payload); }
+    else{ await addDoc(collection(db,'events'), payload); }
+    cancelEditEvent();
+    loadEvents();
+  }catch(err){ alert('Fehler beim Speichern: '+err.message); }
+  btn.disabled = false; btn.textContent = 'Speichern';
+}
+
+function editEvent(id){
+  const ev = EV_CACHE.find(e=>e.id===id);
+  if(!ev) return;
+  EV_EDIT_ID = id;
+  document.getElementById('evFormTitle').textContent = 'Veranstaltung bearbeiten';
+  document.getElementById('evCategory').value = ev.category || 'event';
+  document.getElementById('evName').value = ev.name || '';
+  document.getElementById('evDesc').value = ev.desc || '';
+  document.getElementById('evDateMode').value = ev.dateMode || 'single';
+  document.getElementById('evStart').value = ev.startDate || '';
+  document.getElementById('evEnd').value = ev.endDate || '';
+  document.getElementById('evTags').value = (ev.tags||[]).join(', ');
+  EV_PENDING_SHIFTS = (ev.shifts||[]).slice();
+  EV_PENDING_MATERIALS = (ev.materialIds||[]).slice();
+  updateDateModeUI();
+  renderShiftEditor();
+  renderMatPicker();
+  document.getElementById('evCancelBtn').style.display = 'inline-flex';
+  document.getElementById('evFormCard').scrollIntoView({behavior:'smooth', block:'center'});
+}
+function cancelEditEvent(){
+  EV_EDIT_ID = null;
+  EV_PENDING_SHIFTS = [];
+  EV_PENDING_MATERIALS = [];
+  ['evName','evDesc','evStart','evEnd','evTags'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const cat = document.getElementById('evCategory'); if(cat) cat.value = 'event';
+  const dm = document.getElementById('evDateMode'); if(dm) dm.value = 'single';
+  const title = document.getElementById('evFormTitle'); if(title) title.textContent = 'Neue Veranstaltung';
+  const cancelBtn = document.getElementById('evCancelBtn'); if(cancelBtn) cancelBtn.style.display = 'none';
+  updateDateModeUI();
+  renderShiftEditor();
+  renderMatPicker();
+}
+async function deleteEvent(id){
+  if(!confirm('Diese Veranstaltung wirklich löschen?')) return;
+  await deleteDoc(doc(db,'events',id));
+  loadEvents();
+}
+
+let EV_FILTER = 'all';
+function renderEvFilterRow(){
+  const el = document.getElementById('evFilterRow');
+  if(!el) return;
+  const filters = [['all','Alle'],['upcoming','Anstehend'],['running','Laufend'],['done','Abgeschlossen']];
+  el.innerHTML = filters.map(([id,label])=>'<button class="filter-chip '+(EV_FILTER===id?'active':'')+'" data-evf="'+id+'">'+label+'</button>').join('');
+  el.querySelectorAll('[data-evf]').forEach(b=>b.addEventListener('click', ()=>{ EV_FILTER = b.dataset.evf; renderEvFilterRow(); renderEvList(); }));
+}
+
+async function loadEvents(){
+  if(!Object.keys(USER_MAP_CACHE||{}).length) await loadUserMapCache();
+  const snap = await getDocs(collection(db,'events'));
+  EV_CACHE = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>evSortKey(a)-evSortKey(b));
+  renderEvFilterRow();
+  renderEvList();
+}
+function renderEvList(){
+  const el = document.getElementById('evList');
+  if(!el) return;
+  const cm = can('events_manage');
+  const list = EV_FILTER==='all' ? EV_CACHE : EV_CACHE.filter(ev=>evStatus(ev)===EV_FILTER);
+  el.innerHTML = list.length ? list.map(ev=>{
+    const st = evStatus(ev);
+    const cat = ev.category || 'event';
+    const shifts = ev.shifts || [];
+    return '<div class="ev-row">'
+      + '<div class="list-row-dot '+cat+'"></div>'
+      + '<div class="list-row-text">'
+      +   '<div class="list-row-title">'+ev.name+' <span class="tag-badge">'+EV_STATUS_LABELS[st]+'</span><span class="tag-badge cat-'+cat+'">'+EV_CAT_LABELS[cat]+'</span></div>'
+      +   '<div class="list-row-meta">'+evDateLabel(ev)+(ev.tags&&ev.tags.length?' · '+ev.tags.join(', '):'')+'</div>'
+      +   (shifts.length ? '<div class="shift-summary">🕐 '+shifts.map(s=>(s.task||'')+(s.assignee?' ('+(USER_MAP_CACHE[s.assignee]?.displayName||s.assignee)+')':'')).join(' · ')+'</div>' : '')
+      + '</div>'
+      + (cm ? '<div class="ev-row-actions"><button data-editev="'+ev.id+'">Bearbeiten</button><button data-delev="'+ev.id+'" class="danger">Löschen</button></div>' : '')
+      + '</div>';
+  }).join('') : '<div class="empty-hint">Keine Veranstaltungen in dieser Ansicht.</div>';
+  if(cm){
+    el.querySelectorAll('[data-editev]').forEach(b=>b.addEventListener('click', ()=>editEvent(b.dataset.editev)));
+    el.querySelectorAll('[data-delev]').forEach(b=>b.addEventListener('click', ()=>deleteEvent(b.dataset.delev)));
+  }
+}
+
+/* Gemeinsamer User-Map-Cache (Username -> {displayName, avatarUrl}) für mehrere Module */
+let USER_MAP_CACHE = {};
+async function loadUserMapCache(){
+  const snap = await getDocs(collection(db,'users'));
+  USER_MAP_CACHE = {};
+  snap.docs.forEach(d=>{ const u=d.data(); USER_MAP_CACHE[u.username] = { displayName: u.displayName||u.username, avatarUrl: u.avatarUrl||'', role: u.role, id: d.id }; });
+}
+
+/* ============================================================
+   MODUL: TEAM-CHAT
+   ============================================================ */
+const TC_MAIN_ID = 'main';
+let TC_CONVS = [];
+let TC_ACTIVE = null;
+let unsubConvs = null;
+let unsubActiveThread = null;
+
+function tcDisplayName(username){ return (USER_MAP_CACHE[username]&&USER_MAP_CACHE[username].displayName) || username; }
+function tcAvatarHtml(username){
+  const u = USER_MAP_CACHE[username] || {};
+  if(u.avatarUrl) return '<img src="'+u.avatarUrl+'" alt=""/>';
+  return (u.displayName || username || '?').charAt(0).toUpperCase();
+}
+
+VIEW_RENDERERS['chat'] = async function(content){
+  content.innerHTML =
+    '<div class="chat-shell">'
+    + '<div class="chat-sidebar">'
+    +   '<div class="chat-sidebar-head"><span>Chats</span><div style="display:flex;gap:6px">'
+    +     '<button class="chip-btn" id="tcNewDmBtn" title="Direktnachricht">+ DM</button>'
+    +     '<button class="chip-btn" id="tcNewGroupBtn" title="Gruppe">+ Gruppe</button>'
+    +     '<button class="chip-btn" id="tcNewVoiceBtn" title="Sprachkanal">+ 🎙️</button>'
+    +   '</div></div>'
+    +   '<div class="chat-conv-list" id="tcConvList"><div class="skel skel-line" style="width:80%"></div></div>'
+    + '</div>'
+    + '<div class="chat-main" id="tcMain"><div class="empty-hint" style="padding:60px 0">Wähle links einen Chat.</div></div>'
+    + '</div>';
+  await loadUserMapCache();
+  await ensureMainChatExists();
+  if(unsubConvs) unsubConvs();
+  unsubConvs = onSnapshot(collection(db,'chat_conversations'), (snap)=>{
+    TC_CONVS = snap.docs.map(d=>({id:d.id, ...d.data()}))
+      .filter(c=>c.type==='main' || c.type==='voice' || (c.members||[]).includes(CU.username));
+    renderConvList();
+  });
+  document.getElementById('tcNewDmBtn').addEventListener('click', openNewDmModal);
+  document.getElementById('tcNewGroupBtn').addEventListener('click', openNewGroupModal);
+  document.getElementById('tcNewVoiceBtn').addEventListener('click', openNewVoiceModal);
+};
+
+async function ensureMainChatExists(){
+  const ref_ = doc(db,'chat_conversations', TC_MAIN_ID);
+  const snap = await getDoc(ref_);
+  if(!snap.exists()){
+    await setDoc(ref_, { type:'main', name:'Main-Chat', members:[], createdBy:'system', createdAt: serverTimestamp() });
+  }
+}
+
+function convDisplayInfo(conv){
+  if(conv.type==='main') return { name:'Main-Chat', sub:'Alle Mitglieder' };
+  if(conv.type==='group') return { name: conv.name||'Gruppe', sub: (conv.members||[]).length+' Mitglieder' };
+  if(conv.type==='voice') return { name: conv.name||'Sprachkanal', sub: '🎙️ Sprachkanal' };
+  const other = (conv.members||[]).find(m=>m!==CU.username) || '?';
+  return { name: tcDisplayName(other), sub:'', otherUser: other };
+}
+
+function renderConvList(){
+  const el = document.getElementById('tcConvList');
+  if(!el) return;
+  const sorted = TC_CONVS.slice().sort((a,b)=>{ const order={main:0,group:1,voice:2,dm:3}; return (order[a.type]??4)-(order[b.type]??4); });
+  el.innerHTML = sorted.map(c=>{
+    const info = convDisplayInfo(c);
+    const avatar = c.type==='main' ? '👥' : c.type==='voice' ? '🎙️' : c.type==='group' ? '👥' : tcAvatarHtml(info.otherUser);
+    return '<div class="chat-conv-item '+(TC_ACTIVE===c.id?'active':'')+'" data-conv="'+c.id+'">'
+      + '<div class="chat-conv-avatar">'+avatar+'</div>'
+      + '<div class="chat-conv-text"><div class="chat-conv-name">'+info.name+'</div><div class="chat-conv-sub">'+(info.sub||'')+'</div></div>'
+      + '</div>';
+  }).join('') || '<div class="empty-hint">Keine Chats.</div>';
+  el.querySelectorAll('[data-conv]').forEach(b=>b.addEventListener('click', ()=>openConversation(b.dataset.conv)));
+}
+
+function openConversation(convId){
+  TC_ACTIVE = convId;
+  renderConvList();
+  const conv = TC_CONVS.find(c=>c.id===convId);
+  if(!conv) return;
+  if(conv.type==='voice'){ openVoiceChannel(conv); return; }
+
+  const info = convDisplayInfo(conv);
+  const isAdmin = CU.role==='admin';
+  const groupAdmins = conv.admins || (conv.createdBy?[conv.createdBy]:[]);
+  const canManage = conv.type==='group' && (groupAdmins.includes(CU.username) || isAdmin);
+  const mainEl = document.getElementById('tcMain');
+  mainEl.innerHTML =
+    '<div class="chat-main-head">'
+    + '<div><div class="chat-main-title">'+info.name+'</div>'+(info.sub?'<div class="chat-main-sub">'+info.sub+'</div>':'')+'</div>'
+    + '<div style="display:flex;gap:8px">'
+    +   (canManage ? '<button class="btn-secondary" id="tcManageBtn">Mitglieder</button>' : '')
+    +   (conv.type==='group' && isAdmin ? '<button class="btn-secondary" id="tcDeleteGroupBtn" style="color:var(--danger)">Löschen</button>' : '')
+    + '</div></div>'
+    + '<div class="chat-thread" id="tcThread"><div class="skel skel-line" style="width:60%"></div></div>'
+    + '<div class="chat-input-row"><textarea id="tcText" placeholder="Nachricht schreiben…"></textarea><button class="btn-primary" id="tcSend">Senden</button></div>';
+
+  document.getElementById('tcSend').addEventListener('click', ()=>sendTeamMessage(convId));
+  document.getElementById('tcText').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendTeamMessage(convId); } });
+  const manageBtn = document.getElementById('tcManageBtn'); if(manageBtn) manageBtn.addEventListener('click', ()=>openManageGroupModal(conv));
+  const delBtn = document.getElementById('tcDeleteGroupBtn'); if(delBtn) delBtn.addEventListener('click', ()=>deleteGroup(conv));
+
+  if(unsubActiveThread) unsubActiveThread();
+  unsubActiveThread = onSnapshot(query(collection(db,'chat_messages'), where('conversationId','==',convId)), (snap)=>{
+    const items = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.createdAt?.toMillis?.()||0)-(b.createdAt?.toMillis?.()||0));
+    const threadEl = document.getElementById('tcThread');
+    if(!threadEl) return;
+    const prevText = document.getElementById('tcText')?.value || '';
+    threadEl.innerHTML = items.length ? items.map(tcBubbleHtml).join('') : '<div class="empty-hint">Noch keine Nachrichten.</div>';
+    threadEl.querySelectorAll('[data-icdel]').forEach(b=>b.addEventListener('click', async()=>{ await deleteDoc(doc(db,'chat_messages', b.dataset.icdel)); }));
+    threadEl.scrollTop = threadEl.scrollHeight;
+    const ta = document.getElementById('tcText'); if(ta && prevText) ta.value = prevText;
+  });
+}
+
+function tcBubbleHtml(m){
+  const isOwn = m.username===CU.username;
+  return '<div class="chat-bubble '+(isOwn?'own':'')+'">'
+    + '<div class="chat-bubble-avatar">'+tcAvatarHtml(m.username)+'</div>'
+    + '<div class="chat-bubble-content"><div class="chat-bubble-card"><div class="chat-bubble-name">'+tcDisplayName(m.username)+'</div>'
+    + '<div class="chat-bubble-text">'+(m.text||'').replace(/</g,'&lt;')+'</div></div>'
+    + '<div class="chat-bubble-time">'+fmtTimestamp(m.createdAt)+(isOwn||CU.role==='admin' ? ' · <button data-icdel="'+m.id+'" class="link-btn">Löschen</button>' : '')+'</div>'
+    + '</div></div>';
+}
+
+async function sendTeamMessage(convId){
+  const ta = document.getElementById('tcText');
+  const text = ta.value.trim();
+  if(!text) return;
+  const btn = document.getElementById('tcSend');
+  btn.disabled = true;
+  try{
+    await addDoc(collection(db,'chat_messages'), { conversationId: convId, username: CU.username, text, createdAt: serverTimestamp() });
+    ta.value = '';
+  }catch(err){ alert('Senden fehlgeschlagen: '+err.message); }
+  btn.disabled = false;
+}
+
+function openVoiceChannel(conv){
+  if(unsubActiveThread){ unsubActiveThread(); unsubActiveThread=null; }
+  const isAdmin = CU.role==='admin';
+  const mainEl = document.getElementById('tcMain');
+  mainEl.innerHTML =
+    '<div class="chat-main-head"><div><div class="chat-main-title">🎙️ '+(conv.name||'Sprachkanal')+'</div><div class="chat-main-sub">Audioübertragung über Jitsi Meet</div></div>'
+    + (isAdmin ? '<button class="btn-secondary" id="tcDeleteVoiceBtn" style="color:var(--danger)">Kanal löschen</button>' : '')
+    + '</div>'
+    + '<div class="chat-voice-embed"><iframe allow="camera; microphone; fullscreen; display-capture; autoplay" src="https://meet.jit.si/'+encodeURIComponent(conv.jitsiRoom)+'#config.prejoinPageEnabled=true&userInfo.displayName=%22'+encodeURIComponent(CU.displayName||CU.username)+'%22"></iframe></div>';
+  const delBtn = document.getElementById('tcDeleteVoiceBtn');
+  if(delBtn) delBtn.addEventListener('click', async()=>{
+    if(!confirm('Sprachkanal löschen?')) return;
+    await deleteDoc(doc(db,'chat_conversations', conv.id));
+    TC_ACTIVE = null;
+    mainEl.innerHTML = '<div class="empty-hint" style="padding:60px 0">Wähle links einen Chat.</div>';
+  });
+}
+
+function openNewDmModal(){
+  const others = Object.keys(USER_MAP_CACHE).filter(u=>u!==CU.username);
+  const body = others.map(u=>'<div class="modal-pick-row" data-pickdm="'+u+'">'+tcDisplayName(u)+'</div>').join('');
+  showModal('Direktnachricht starten', '<div class="modal-pick-list">'+body+'</div>', null);
+  document.querySelectorAll('[data-pickdm]').forEach(row=>row.addEventListener('click', async()=>{
+    closeModal();
+    const other = row.dataset.pickdm;
+    const existing = TC_CONVS.find(c=>c.type==='dm' && (c.members||[]).includes(other) && (c.members||[]).includes(CU.username));
+    if(existing){ openConversation(existing.id); return; }
+    const ref_ = await addDoc(collection(db,'chat_conversations'), { type:'dm', members:[CU.username, other], createdBy:CU.username, createdAt: serverTimestamp() });
+    setTimeout(()=>openConversation(ref_.id), 200);
+  }));
+}
+function openNewGroupModal(){
+  const others = Object.keys(USER_MAP_CACHE).filter(u=>u!==CU.username);
+  const body = '<div class="field-group"><label class="field-label">Gruppenname</label><input type="text" id="mGroupName" placeholder="z.B. Lichtteam"></div>'
+    + '<label class="field-label">Mitglieder</label><div class="modal-pick-list">'+others.map(u=>'<label class="modal-check-row"><input type="checkbox" value="'+u+'"> '+tcDisplayName(u)+'</label>').join('')+'</div>';
+  showModal('Neue Gruppe', body, async(modalEl)=>{
+    const name = modalEl.querySelector('#mGroupName').value.trim();
+    const checked = [...modalEl.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value);
+    if(!name){ alert('Bitte Gruppennamen eingeben.'); return false; }
+    if(!checked.length){ alert('Bitte mindestens ein Mitglied wählen.'); return false; }
+    await addDoc(collection(db,'chat_conversations'), { type:'group', name, members:[...new Set([CU.username,...checked])], admins:[CU.username], createdBy:CU.username, createdAt: serverTimestamp() });
+    return true;
+  });
+}
+function openNewVoiceModal(){
+  const body = '<div class="field-group"><label class="field-label">Name des Kanals</label><input type="text" id="mVoiceName" placeholder="z.B. Technik-Besprechung"></div>'
+    + '<p style="font-size:12px;color:var(--ink-faint)">Sprachkanäle sind für alle Mitglieder offen (Jitsi Meet, kein Konto nötig).</p>';
+  showModal('Neuer Sprachkanal', body, async(modalEl)=>{
+    const name = modalEl.querySelector('#mVoiceName').value.trim();
+    if(!name){ alert('Bitte einen Namen eingeben.'); return false; }
+    const roomName = 'gwt-'+name.replace(/[^a-zA-Z0-9]/g,'')+'-'+Date.now().toString(36);
+    await addDoc(collection(db,'chat_conversations'), { type:'voice', name, jitsiRoom: roomName, createdBy: CU.username, createdAt: serverTimestamp() });
+    return true;
+  });
+}
+function openManageGroupModal(conv){
+  const others = Object.keys(USER_MAP_CACHE).filter(u=>u!==CU.username);
+  const members = conv.members||[]; const admins = conv.admins||(conv.createdBy?[conv.createdBy]:[]);
+  const body = '<div class="field-group"><label class="field-label">Gruppenname</label><input type="text" id="mGroupName" value="'+(conv.name||'')+'"></div>'
+    + '<label class="field-label">Mitglieder & Admins</label><div class="modal-pick-list">'
+    + others.map(u=>'<label class="modal-check-row"><input type="checkbox" value="'+u+'" data-member="'+u+'" '+(members.includes(u)?'checked':'')+'> '+tcDisplayName(u)
+      +'<label style="margin-left:auto;font-size:11px"><input type="checkbox" data-admin-for="'+u+'" '+(admins.includes(u)?'checked':'')+'> Admin</label></label>').join('')
+    + '</div>';
+  showModal('Mitglieder verwalten', body, async(modalEl)=>{
+    const name = modalEl.querySelector('#mGroupName').value.trim();
+    if(!name){ alert('Bitte Gruppennamen eingeben.'); return false; }
+    const checkedMembers = [...modalEl.querySelectorAll('[data-member]:checked')].map(c=>c.dataset.member);
+    const checkedAdmins = [...modalEl.querySelectorAll('[data-admin-for]:checked')].map(c=>c.dataset.adminFor);
+    const newMembers = [...new Set([CU.username,...checkedMembers])];
+    let newAdmins = [...new Set(checkedAdmins.filter(a=>newMembers.includes(a)))];
+    if(!newAdmins.length) newAdmins.push(CU.username);
+    await updateDoc(doc(db,'chat_conversations',conv.id), { name, members:newMembers, admins:newAdmins });
+    return true;
+  });
+}
+async function deleteGroup(conv){
+  if(!confirm('Gruppe "'+(conv.name||'')+'" wirklich löschen?')) return;
+  const msgSnap = await getDocs(query(collection(db,'chat_messages'), where('conversationId','==',conv.id)));
+  await Promise.all(msgSnap.docs.map(d=>deleteDoc(doc(db,'chat_messages',d.id))));
+  await deleteDoc(doc(db,'chat_conversations',conv.id));
+  TC_ACTIVE = null;
+  document.getElementById('tcMain').innerHTML = '<div class="empty-hint" style="padding:60px 0">Wähle links einen Chat.</div>';
+}
+
+/* Wiederverwendbares Modal (für Chat-Dialoge und weitere Module) */
+function showModal(title, bodyHtml, onSave){
+  let overlay = document.getElementById('genericModalOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'genericModalOverlay';
+    overlay.className = 'modal-overlay';
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML =
+    '<div class="modal-box"><h3>'+title+'</h3><div id="genericModalBody">'+bodyHtml+'</div>'
+    + '<div class="modal-actions"><button class="btn-secondary" id="genericModalCancel">Abbrechen</button>'
+    + (onSave ? '<button class="btn-primary" id="genericModalSave">Speichern</button>' : '')
+    + '</div></div>';
+  overlay.classList.add('open');
+  overlay.querySelector('#genericModalCancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+  if(onSave){
+    overlay.querySelector('#genericModalSave').addEventListener('click', async()=>{
+      const ok = await onSave(overlay.querySelector('#genericModalBody'));
+      if(ok!==false) closeModal();
+    });
+  }
+}
+function closeModal(){
+  const overlay = document.getElementById('genericModalOverlay');
+  if(overlay) overlay.classList.remove('open');
+}
+
+/* ============================================================
+   MODUL: TODOS
+   ============================================================ */
+let unsubTodos = null;
+VIEW_RENDERERS['todos'] = function(content){
+  content.innerHTML =
+    '<div class="card">'
+    + '<div class="field-group" style="max-width:520px"><label class="field-label">Neues ToDo</label>'
+    +   '<div style="display:flex;gap:10px"><input type="text" id="todoNewInput" placeholder="z.B. Mischpult für Konzert vorbereiten" style="flex:1"><button class="btn-primary" id="todoAddBtn">Hinzufügen</button></div></div>'
+    + '<div id="todoListEl" style="margin-top:14px"><div class="skel skel-line" style="width:70%"></div></div>'
+    + '</div>';
+  document.getElementById('todoAddBtn').addEventListener('click', addTodoItem);
+  document.getElementById('todoNewInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addTodoItem(); });
+  if(unsubTodos) unsubTodos();
+  unsubTodos = onSnapshot(collection(db,'todos'), (snap)=>{
+    const items = snap.docs.map(d=>({id:d.id, ...d.data()}))
+      .sort((a,b)=>(a.done?1:0)-(b.done?1:0) || (b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+    renderTodoList(items);
+  });
+};
+function renderTodoList(items){
+  const el = document.getElementById('todoListEl');
+  if(!el) return;
+  el.innerHTML = items.length ? items.map(t=>
+    '<div class="todo-row" style="border-bottom:1px solid var(--line);padding:10px 0">'
+    + '<div class="todo-check '+(t.done?'done':'')+'" data-toggletodo="'+t.id+'">'+(t.done?'✓':'')+'</div>'
+    + '<div class="todo-text '+(t.done?'done':'')+'">'+(t.text||'').replace(/</g,'&lt;')+'</div>'
+    + '<div style="font-size:11px;color:var(--ink-faint);margin-left:auto">'+(t.createdBy?tcDisplayName(t.createdBy):'')+'</div>'
+    + '<button data-deltodo="'+t.id+'" class="link-btn" style="margin-left:8px">✕</button>'
+    + '</div>'
+  ).join('') : '<div class="empty-hint">Keine ToDos vorhanden.</div>';
+  el.querySelectorAll('[data-toggletodo]').forEach(b=>b.addEventListener('click', async()=>{
+    await updateDoc(doc(db,'todos', b.dataset.toggletodo), { done: !b.classList.contains('done') });
+  }));
+  el.querySelectorAll('[data-deltodo]').forEach(b=>b.addEventListener('click', async()=>{
+    await deleteDoc(doc(db,'todos', b.dataset.deltodo));
+  }));
+}
+async function addTodoItem(){
+  const input = document.getElementById('todoNewInput');
+  const text = input.value.trim();
+  if(!text) return;
+  await addDoc(collection(db,'todos'), { text, done:false, createdBy: CU.username, createdAt: serverTimestamp() });
+  input.value = '';
+}
+
+/* ============================================================
+   MODUL: INVENTAR
+   ============================================================ */
+let unsubInventory = null;
+let INV_FILTER = '';
+let INV_CACHE = [];
+const INV_STATUS_LABELS = { available:'Verfügbar', broken:'Defekt', inuse:'Verwendet' };
+
+VIEW_RENDERERS['inventar'] = function(content){
+  const cm = can('events_manage');
+  content.innerHTML =
+    '<div class="card">'
+    + (cm ? '<div class="form-grid-3"><div class="field-group"><label class="field-label">Gerätename</label><input type="text" id="invNewName" placeholder="z.B. Behringer X32"></div>'
+      + '<div class="field-group"><label class="field-label">Kategorie</label><input type="text" id="invNewCat" placeholder="z.B. Mischpult"></div>'
+      + '<div class="field-group" style="justify-content:flex-end"><button class="btn-primary" id="invAddBtn" style="width:100%">Hinzufügen</button></div></div>' : '')
+    + '<div class="ev-filter-row" id="invFilterRow"></div>'
+    + '<div class="grid grid-3" id="invGrid"><div class="skel skel-line" style="width:60%"></div></div>'
+    + '</div>';
+  if(cm) document.getElementById('invAddBtn').addEventListener('click', addInventoryItem);
+  renderInvFilterRow();
+  if(unsubInventory) unsubInventory();
+  unsubInventory = onSnapshot(collection(db,'inventory'), (snap)=>{
+    INV_CACHE = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    renderInvGrid();
+  });
+};
+function renderInvFilterRow(){
+  const el = document.getElementById('invFilterRow');
+  if(!el) return;
+  const filters = [['','Alle'],['available','Verfügbar'],['broken','Defekt'],['inuse','Verwendet']];
+  el.innerHTML = filters.map(([id,label])=>'<button class="filter-chip '+(INV_FILTER===id?'active':'')+'" data-invf="'+id+'">'+label+'</button>').join('');
+  el.querySelectorAll('[data-invf]').forEach(b=>b.addEventListener('click', ()=>{ INV_FILTER=b.dataset.invf; renderInvFilterRow(); renderInvGrid(); }));
+}
+function renderInvGrid(){
+  const el = document.getElementById('invGrid');
+  if(!el) return;
+  const cm = can('events_manage');
+  const list = INV_FILTER ? INV_CACHE.filter(i=>i.status===INV_FILTER) : INV_CACHE;
+  el.innerHTML = list.length ? list.map(i=>
+    '<div class="card" style="padding:14px 16px;border-left:3px solid '+(i.status==='broken'?'var(--danger)':i.status==='inuse'?'var(--warn)':'var(--accent)')+'">'
+    + '<div style="font-weight:600;font-size:13.5px">'+i.name+'</div>'
+    + (i.category ? '<div style="font-size:11.5px;color:var(--ink-faint);margin-bottom:8px">'+i.category+'</div>' : '')
+    + '<select class="inv-status-select" data-invstatus="'+i.id+'" style="width:100%;margin-bottom:8px">'
+    +   Object.keys(INV_STATUS_LABELS).map(s=>'<option value="'+s+'" '+((i.status||'available')===s?'selected':'')+'>'+INV_STATUS_LABELS[s]+'</option>').join('')
+    + '</select>'
+    + (cm ? '<button data-invdel="'+i.id+'" class="link-btn">Löschen</button>' : '')
+    + '</div>'
+  ).join('') : '<div class="empty-hint">Keine Geräte in dieser Ansicht.</div>';
+  el.querySelectorAll('[data-invstatus]').forEach(sel=>sel.addEventListener('change', async()=>{
+    await updateDoc(doc(db,'inventory', sel.dataset.invstatus), { status: sel.value });
+  }));
+  el.querySelectorAll('[data-invdel]').forEach(b=>b.addEventListener('click', async()=>{
+    if(!confirm('Gerät wirklich löschen?')) return;
+    await deleteDoc(doc(db,'inventory', b.dataset.invdel));
+  }));
+}
+async function addInventoryItem(){
+  const name = document.getElementById('invNewName').value.trim();
+  const category = document.getElementById('invNewCat').value.trim();
+  if(!name) return;
+  await addDoc(collection(db,'inventory'), { name, category, status:'available' });
+  document.getElementById('invNewName').value = '';
+  document.getElementById('invNewCat').value = '';
+}
+
 
 function renderView(viewId){
   const content = document.getElementById('content');
