@@ -265,6 +265,12 @@
   .upload-drop{border:1.5px dashed var(--line-strong);border-radius:var(--r-md);padding:26px;text-align:center;cursor:pointer;color:var(--ink-faint);font-size:13px;transition:all .15s;background:var(--panel-sunken);}
   .upload-drop:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
 
+  /* ===== EVENT DETAIL TABS ===== */
+  .evd-tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:18px;border-bottom:1px solid var(--line);padding-bottom:0;}
+  .evd-tab{display:flex;align-items:center;gap:6px;background:none;border:none;border-bottom:2px solid transparent;padding:9px 12px;font-size:12.5px;font-weight:500;color:var(--ink-faint);transition:all .15s;white-space:nowrap;}
+  .evd-tab:hover{color:var(--ink-soft);}
+  .evd-tab.active{color:var(--accent-hover);border-bottom-color:var(--accent);}
+
   @media (max-width:900px){
     #app.unlocked{display:block;}
     .sidebar{position:fixed;top:0;left:0;bottom:0;width:260px;z-index:200;transform:translateX(-100%);transition:transform .25s;}
@@ -591,12 +597,15 @@ function setActiveNav(viewId){
 function router(){
   if(!CU) return;
   const hash = window.location.hash.replace('#/', '') || 'dashboard';
-  const [viewId] = hash.split('/');
+  const parts = hash.split('/');
+  const viewId = parts[0];
+  const subId = parts[1] || null;
   const titles = VIEW_TITLES[viewId] || ['Unbekannt',''];
   document.getElementById('viewTitle').textContent = titles[0];
   document.getElementById('viewSub').textContent = titles[1];
   setActiveNav(viewId);
   document.getElementById('sidebar').classList.remove('open');
+  if(viewId==='events' && subId){ renderEventDetail(subId); return; }
   renderView(viewId);
 }
 window.addEventListener('hashchange', router);
@@ -803,17 +812,18 @@ function renderEvList(){
     const shifts = ev.shifts || [];
     return '<div class="ev-row">'
       + '<div class="list-row-dot '+cat+'"></div>'
-      + '<div class="list-row-text">'
+      + '<div class="list-row-text" data-openev="'+ev.id+'" style="cursor:pointer">'
       +   '<div class="list-row-title">'+ev.name+' <span class="tag-badge">'+EV_STATUS_LABELS[st]+'</span><span class="tag-badge cat-'+cat+'">'+EV_CAT_LABELS[cat]+'</span></div>'
       +   '<div class="list-row-meta">'+evDateLabel(ev)+(ev.tags&&ev.tags.length?' · '+ev.tags.join(', '):'')+'</div>'
       +   (shifts.length ? '<div class="shift-summary">🕐 '+shifts.map(s=>(s.task||'')+(s.assignee?' ('+(USER_MAP_CACHE[s.assignee]?.displayName||s.assignee)+')':'')).join(' · ')+'</div>' : '')
       + '</div>'
-      + (cm ? '<div class="ev-row-actions"><button data-editev="'+ev.id+'">Bearbeiten</button><button data-delev="'+ev.id+'" class="danger">Löschen</button></div>' : '')
+      + '<div class="ev-row-actions"><button data-openev="'+ev.id+'">Technik-Planung →</button>'+(cm?'<button data-editev="'+ev.id+'">Bearbeiten</button><button data-delev="'+ev.id+'" class="danger">Löschen</button>':'')+'</div>'
       + '</div>';
   }).join('') : '<div class="empty-hint">Keine Veranstaltungen in dieser Ansicht.</div>';
+  el.querySelectorAll('[data-openev]').forEach(b=>b.addEventListener('click', (e)=>{ e.stopPropagation(); window.location.hash = '#/events/'+b.dataset.openev; }));
   if(cm){
-    el.querySelectorAll('[data-editev]').forEach(b=>b.addEventListener('click', ()=>editEvent(b.dataset.editev)));
-    el.querySelectorAll('[data-delev]').forEach(b=>b.addEventListener('click', ()=>deleteEvent(b.dataset.delev)));
+    el.querySelectorAll('[data-editev]').forEach(b=>b.addEventListener('click', (e)=>{ e.stopPropagation(); editEvent(b.dataset.editev); }));
+    el.querySelectorAll('[data-delev]').forEach(b=>b.addEventListener('click', (e)=>{ e.stopPropagation(); deleteEvent(b.dataset.delev); }));
   }
 }
 
@@ -823,6 +833,554 @@ async function loadUserMapCache(){
   const snap = await getDocs(collection(db,'users'));
   USER_MAP_CACHE = {};
   snap.docs.forEach(d=>{ const u=d.data(); USER_MAP_CACHE[u.username] = { displayName: u.displayName||u.username, avatarUrl: u.avatarUrl||'', role: u.role, id: d.id }; });
+}
+
+/* ============================================================
+   VERANSTALTUNGS-DETAILSEITE: Hub für die Technik-Planungs-Module
+   Jedes Modul speichert in einer eigenen Subcollection unter
+   events/{eventId}/... damit die Daten sauber pro Veranstaltung
+   getrennt sind und nicht das Event-Hauptdokument aufblähen.
+   ============================================================ */
+let EVD_CURRENT_ID = null;
+let EVD_CURRENT_EV = null;
+let EVD_ACTIVE_TAB = 'uebersicht';
+
+const EVD_TABS = [
+  { id:'uebersicht', label:'Übersicht', icon:'📋' },
+  { id:'rider', label:'Technischer Rider', icon:'📝' },
+  { id:'strom', label:'Stromlast', icon:'⚡' },
+  { id:'rigging', label:'Rigging', icon:'🔗' },
+  { id:'kabel', label:'Kabelbelegung', icon:'🔌' },
+  { id:'dmx', label:'DMX-Adressen', icon:'🎛️' },
+  { id:'grundriss', label:'Grundriss', icon:'🗺️' },
+  { id:'sicherheit', label:'Sicherheit', icon:'🦺' },
+  { id:'leihgeraete', label:'Leihgeräte', icon:'📤' },
+  { id:'feedback', label:'Nachbereitung', icon:'💬' }
+];
+
+async function renderEventDetail(eventId){
+  EVD_CURRENT_ID = eventId;
+  const content = document.getElementById('content');
+  document.getElementById('viewTitle').textContent = 'Lädt…';
+  content.innerHTML = '<div class="skel skel-line" style="width:50%"></div>';
+
+  if(!EV_CACHE.length){
+    const snap = await getDocs(collection(db,'events'));
+    EV_CACHE = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  }
+  const ev = EV_CACHE.find(e=>e.id===eventId);
+  if(!ev){
+    content.innerHTML = '<div class="placeholder-view"><div class="ic">❓</div><h2>Veranstaltung nicht gefunden</h2><p><a href="#/events" style="color:var(--accent)">Zurück zur Übersicht</a></p></div>';
+    return;
+  }
+  EVD_CURRENT_EV = ev;
+  document.getElementById('viewTitle').textContent = ev.name;
+  document.getElementById('viewSub').textContent = evDateLabel(ev) + ' · ' + EV_CAT_LABELS[ev.category||'event'];
+
+  content.innerHTML =
+    '<a href="#/events" style="font-size:12.5px;color:var(--ink-faint);text-decoration:none;display:inline-block;margin-bottom:14px">← Zurück zu allen Veranstaltungen</a>'
+    + '<div class="evd-tabs" id="evdTabs"></div>'
+    + '<div id="evdTabContent"></div>';
+
+  const tabsEl = document.getElementById('evdTabs');
+  tabsEl.innerHTML = EVD_TABS.map(t=>'<button class="evd-tab '+(EVD_ACTIVE_TAB===t.id?'active':'')+'" data-evdtab="'+t.id+'"><span>'+t.icon+'</span>'+t.label+'</button>').join('');
+  tabsEl.querySelectorAll('[data-evdtab]').forEach(b=>b.addEventListener('click', ()=>{
+    EVD_ACTIVE_TAB = b.dataset.evdtab;
+    tabsEl.querySelectorAll('.evd-tab').forEach(x=>x.classList.toggle('active', x.dataset.evdtab===EVD_ACTIVE_TAB));
+    renderEvdTab();
+  }));
+  renderEvdTab();
+}
+
+function renderEvdTab(){
+  const el = document.getElementById('evdTabContent');
+  if(!el) return;
+  const renderers = {
+    uebersicht: renderEvdUebersicht,
+    rider: renderEvdRider,
+    strom: renderEvdStrom,
+    rigging: renderEvdRigging,
+    kabel: renderEvdKabel,
+    dmx: renderEvdDmx,
+    grundriss: renderEvdGrundriss,
+    sicherheit: renderEvdSicherheit,
+    leihgeraete: renderEvdLeihgeraete,
+    feedback: renderEvdFeedback
+  };
+  const fn = renderers[EVD_ACTIVE_TAB];
+  if(fn) fn(el, EVD_CURRENT_ID, EVD_CURRENT_EV);
+}
+
+/* ---- Übersicht-Tab: Zusammenfassung aus allen Modulen ---- */
+async function renderEvdUebersicht(el, eventId, ev){
+  el.innerHTML = '<div class="grid grid-3"><div class="skel skel-line" style="width:60%"></div></div>';
+  const [riderSnap, stromSnap, riggingSnap, sicherheitSnap] = await Promise.all([
+    getDocs(collection(db,'events',eventId,'rider')),
+    getDocs(collection(db,'events',eventId,'stromkreise')),
+    getDocs(collection(db,'events',eventId,'rigging')),
+    getDoc(doc(db,'events',eventId,'meta','sicherheit'))
+  ]);
+  const riderCount = riderSnap.size;
+  const stromCount = stromSnap.size;
+  const riggingCount = riggingSnap.size;
+  const sicherheitDone = sicherheitSnap.exists() && sicherheitSnap.data().checklist && Object.values(sicherheitSnap.data().checklist).every(v=>v);
+
+  el.innerHTML =
+    '<div class="grid grid-4" style="margin-bottom:16px">'
+    + '<div class="card stat-card"><div class="stat-num">'+riderCount+'</div><div class="stat-label">Rider-Positionen</div></div>'
+    + '<div class="card stat-card"><div class="stat-num">'+stromCount+'</div><div class="stat-label">Stromkreise</div></div>'
+    + '<div class="card stat-card"><div class="stat-num">'+riggingCount+'</div><div class="stat-label">Rigging-Punkte</div></div>'
+    + '<div class="card stat-card '+(sicherheitDone?'accent':'')+'"><div class="stat-num" style="font-size:18px">'+(sicherheitDone?'✓ Erledigt':'⚠ Offen')+'</div><div class="stat-label">Sicherheitscheck</div></div>'
+    + '</div>'
+    + '<div class="card"><div class="card-title">Veranstaltungsdetails</div>'
+    +   '<p style="font-size:13px;color:var(--ink-soft);margin-bottom:10px">'+(ev.desc||'Keine Beschreibung hinterlegt.')+'</p>'
+    +   (ev.shifts && ev.shifts.length ? '<div class="field-label" style="margin-bottom:8px">Schichtplan</div>' + ev.shifts.map(s=>'<div class="list-row" style="padding:6px 0"><div class="list-row-text"><div class="list-row-title">'+(s.task||'')+'</div><div class="list-row-meta">'+(s.from||'')+'–'+(s.to||'')+(s.assignee?' · '+(USER_MAP_CACHE[s.assignee]?.displayName||s.assignee):'')+'</div></div></div>').join('') : '<div class="empty-hint">Kein Schichtplan hinterlegt.</div>')
+    + '</div>';
+}
+
+/* ---- Rider-Tab: Technischer Bedarf (Kanäle, Gewicht, Anzahl) ---- */
+const RIDER_CATEGORIES = ['Ton','Licht','Bühne','Video','Sonstiges'];
+async function renderEvdRider(el, eventId){
+  el.innerHTML = '<div class="card"><div class="skel skel-line" style="width:60%"></div></div>';
+  const cm = can('events_manage');
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Technischer Rider – Bedarfsliste</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Was wird für diese Veranstaltung benötigt: Geräte, Kanäle, Stückzahl, Gewicht.</p>'
+    + (cm ? '<div class="form-grid-3">'
+      + '<div class="field-group"><label class="field-label">Kategorie</label><select id="riderCat">'+RIDER_CATEGORIES.map(c=>'<option>'+c+'</option>').join('')+'</select></div>'
+      + '<div class="field-group"><label class="field-label">Bezeichnung</label><input type="text" id="riderName" placeholder="z.B. Shure SM58"></div>'
+      + '<div class="field-group"><label class="field-label">Anzahl</label><input type="text" id="riderQty" placeholder="z.B. 4"></div>'
+      + '</div>'
+      + '<div class="form-grid-2">'
+      + '<div class="field-group"><label class="field-label">Gewicht pro Stück (kg, optional)</label><input type="text" id="riderWeight" placeholder="z.B. 0.3"></div>'
+      + '<div class="field-group"><label class="field-label">Notiz</label><input type="text" id="riderNote" placeholder="z.B. inkl. Klemme"></div>'
+      + '</div>'
+      + '<button class="btn-primary" id="riderAddBtn">Hinzufügen</button>' : '')
+    + '<div id="riderListEl" style="margin-top:16px"></div>'
+    + '</div>';
+  if(cm) document.getElementById('riderAddBtn').addEventListener('click', ()=>addRiderItem(eventId));
+  loadRiderItems(eventId);
+}
+async function loadRiderItems(eventId){
+  const el = document.getElementById('riderListEl');
+  if(!el) return;
+  const snap = await getDocs(collection(db,'events',eventId,'rider'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  const cm = can('events_manage');
+  if(!items.length){ el.innerHTML = '<div class="empty-hint">Noch keine Rider-Positionen erfasst.</div>'; return; }
+  const totalWeight = items.reduce((sum,i)=>sum + (parseFloat(i.weight)||0) * (parseInt(i.qty)||1), 0);
+  el.innerHTML = RIDER_CATEGORIES.map(cat=>{
+    const catItems = items.filter(i=>i.category===cat);
+    if(!catItems.length) return '';
+    return '<div class="field-label" style="margin:14px 0 6px">'+cat+'</div>' + catItems.map(i=>
+      '<div class="list-row"><div class="list-row-text"><div class="list-row-title">'+i.name+' × '+i.qty+'</div>'
+      + '<div class="list-row-meta">'+(i.weight?('Gewicht: '+(parseFloat(i.weight)*parseInt(i.qty||1)).toFixed(1)+' kg gesamt · '):'')+(i.note||'')+'</div></div>'
+      + (cm ? '<button data-delrider="'+i.id+'" class="link-btn">✕</button>' : '')
+      + '</div>'
+    ).join('');
+  }).join('') + '<div style="margin-top:14px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-faint)">Gesamtgewicht (soweit erfasst): <strong style="color:var(--ink)">'+totalWeight.toFixed(1)+' kg</strong></div>';
+  if(cm) el.querySelectorAll('[data-delrider]').forEach(b=>b.addEventListener('click', async()=>{ await deleteDoc(doc(db,'events',eventId,'rider',b.dataset.delrider)); loadRiderItems(eventId); }));
+}
+async function addRiderItem(eventId){
+  const category = document.getElementById('riderCat').value;
+  const name = document.getElementById('riderName').value.trim();
+  const qty = document.getElementById('riderQty').value.trim() || '1';
+  const weight = document.getElementById('riderWeight').value.trim();
+  const note = document.getElementById('riderNote').value.trim();
+  if(!name) return;
+  await addDoc(collection(db,'events',eventId,'rider'), { category, name, qty, weight, note });
+  document.getElementById('riderName').value=''; document.getElementById('riderQty').value=''; document.getElementById('riderWeight').value=''; document.getElementById('riderNote').value='';
+  loadRiderItems(eventId);
+}
+
+/* ---- Stromlast-Tab: Stromkreise mit Absicherung und Lastberechnung ---- */
+async function renderEvdStrom(el, eventId){
+  const cm = can('events_manage');
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Stromlastberechnung</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Pro Stromkreis: angeschlossene Verbraucher, Gesamtleistung und Absicherung. Warnt bei Überlastung.</p>'
+    + (cm ? '<div class="form-grid-3">'
+      + '<div class="field-group"><label class="field-label">Stromkreis-Name</label><input type="text" id="stromName" placeholder="z.B. Verteiler 1, Kreis A"></div>'
+      + '<div class="field-group"><label class="field-label">Verbraucher (Beschreibung)</label><input type="text" id="stromLoad" placeholder="z.B. 4x PAR-Scheinwerfer"></div>'
+      + '<div class="field-group"><label class="field-label">Leistung gesamt (Watt)</label><input type="text" id="stromWatt" placeholder="z.B. 1600"></div>'
+      + '</div>'
+      + '<div class="field-group" style="max-width:220px"><label class="field-label">Absicherung (Ampere)</label><input type="text" id="stromFuse" placeholder="z.B. 16"></div>'
+      + '<button class="btn-primary" id="stromAddBtn">Stromkreis hinzufügen</button>' : '')
+    + '<div id="stromListEl" style="margin-top:16px"></div>'
+    + '</div>';
+  if(cm) document.getElementById('stromAddBtn').addEventListener('click', ()=>addStromkreis(eventId));
+  loadStromkreise(eventId);
+}
+async function loadStromkreise(eventId){
+  const el = document.getElementById('stromListEl');
+  if(!el) return;
+  const snap = await getDocs(collection(db,'events',eventId,'stromkreise'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  const cm = can('events_manage');
+  if(!items.length){ el.innerHTML = '<div class="empty-hint">Noch keine Stromkreise erfasst.</div>'; return; }
+  el.innerHTML = items.map(s=>{
+    const watt = parseFloat(s.watt)||0;
+    const fuse = parseFloat(s.fuse)||16;
+    const maxWatt = fuse * 230; // 230V Standardnetz
+    const pct = maxWatt ? Math.min(100, Math.round(watt/maxWatt*100)) : 0;
+    const overload = watt > maxWatt;
+    return '<div class="card" style="padding:14px 16px;margin-bottom:10px;border-left:3px solid '+(overload?'var(--danger)':pct>80?'var(--warn)':'var(--accent)')+'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center"><strong style="font-size:13.5px">'+s.name+'</strong>'
+      + (cm ? '<button data-delstrom="'+s.id+'" class="link-btn">✕</button>' : '') + '</div>'
+      + '<div style="font-size:12px;color:var(--ink-soft);margin:4px 0">'+(s.load||'')+'</div>'
+      + '<div style="font-size:12px;color:var(--ink-faint)">'+watt+' W bei '+fuse+' A Absicherung (max. '+maxWatt.toFixed(0)+' W)'+(overload?' <strong style="color:var(--danger)">— ÜBERLASTET!</strong>':'')+'</div>'
+      + '<div style="background:var(--panel-sunken);border-radius:100px;height:6px;margin-top:8px;overflow:hidden"><div style="background:'+(overload?'var(--danger)':pct>80?'var(--warn)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>'
+      + '</div>';
+  }).join('');
+  if(cm) el.querySelectorAll('[data-delstrom]').forEach(b=>b.addEventListener('click', async()=>{ await deleteDoc(doc(db,'events',eventId,'stromkreise',b.dataset.delstrom)); loadStromkreise(eventId); }));
+}
+async function addStromkreis(eventId){
+  const name = document.getElementById('stromName').value.trim();
+  const load = document.getElementById('stromLoad').value.trim();
+  const watt = document.getElementById('stromWatt').value.trim();
+  const fuse = document.getElementById('stromFuse').value.trim() || '16';
+  if(!name) return;
+  await addDoc(collection(db,'events',eventId,'stromkreise'), { name, load, watt, fuse });
+  document.getElementById('stromName').value=''; document.getElementById('stromLoad').value=''; document.getElementById('stromWatt').value=''; document.getElementById('stromFuse').value='';
+  loadStromkreise(eventId);
+}
+
+/* ---- Rigging-Tab: Traversenpunkte mit Lastenberechnung ---- */
+async function renderEvdRigging(el, eventId){
+  const cm = can('events_manage');
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Rigging-Plan</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Traversenpunkte mit Traglast. Prüft, ob die zulässige Last pro Punkt überschritten wird.</p>'
+    + (cm ? '<div class="form-grid-3">'
+      + '<div class="field-group"><label class="field-label">Bezeichnung</label><input type="text" id="rigName" placeholder="z.B. Punkt A, Traverse 1"></div>'
+      + '<div class="field-group"><label class="field-label">Angehängte Last (kg)</label><input type="text" id="rigLoad" placeholder="z.B. 45"></div>'
+      + '<div class="field-group"><label class="field-label">Zulässige Traglast (kg)</label><input type="text" id="rigMax" placeholder="z.B. 100"></div>'
+      + '</div>'
+      + '<div class="field-group"><label class="field-label">Was hängt daran</label><input type="text" id="rigDesc" placeholder="z.B. 2x Movingheads, 1x Lautsprecher"></div>'
+      + '<button class="btn-primary" id="rigAddBtn">Rigging-Punkt hinzufügen</button>' : '')
+    + '<div id="rigListEl" style="margin-top:16px"></div>'
+    + '</div>';
+  if(cm) document.getElementById('rigAddBtn').addEventListener('click', ()=>addRiggingPoint(eventId));
+  loadRiggingPoints(eventId);
+}
+async function loadRiggingPoints(eventId){
+  const el = document.getElementById('rigListEl');
+  if(!el) return;
+  const snap = await getDocs(collection(db,'events',eventId,'rigging'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  const cm = can('events_manage');
+  if(!items.length){ el.innerHTML = '<div class="empty-hint">Noch keine Rigging-Punkte erfasst.</div>'; return; }
+  el.innerHTML = items.map(r=>{
+    const load = parseFloat(r.load)||0;
+    const max = parseFloat(r.max)||0;
+    const pct = max ? Math.min(100, Math.round(load/max*100)) : 0;
+    const overload = max && load > max;
+    return '<div class="card" style="padding:14px 16px;margin-bottom:10px;border-left:3px solid '+(overload?'var(--danger)':pct>80?'var(--warn)':'var(--accent)')+'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center"><strong style="font-size:13.5px">'+r.name+'</strong>'
+      + (cm ? '<button data-delrig="'+r.id+'" class="link-btn">✕</button>' : '') + '</div>'
+      + '<div style="font-size:12px;color:var(--ink-soft);margin:4px 0">'+(r.desc||'')+'</div>'
+      + '<div style="font-size:12px;color:var(--ink-faint)">'+load+' kg von max. '+max+' kg'+(overload?' <strong style="color:var(--danger)">— ÜBERLAST!</strong>':'')+'</div>'
+      + '<div style="background:var(--panel-sunken);border-radius:100px;height:6px;margin-top:8px;overflow:hidden"><div style="background:'+(overload?'var(--danger)':pct>80?'var(--warn)':'var(--accent)')+';height:100%;width:'+pct+'%"></div></div>'
+      + '</div>';
+  }).join('');
+  if(cm) el.querySelectorAll('[data-delrig]').forEach(b=>b.addEventListener('click', async()=>{ await deleteDoc(doc(db,'events',eventId,'rigging',b.dataset.delrig)); loadRiggingPoints(eventId); }));
+}
+async function addRiggingPoint(eventId){
+  const name = document.getElementById('rigName').value.trim();
+  const load = document.getElementById('rigLoad').value.trim();
+  const max = document.getElementById('rigMax').value.trim();
+  const desc = document.getElementById('rigDesc').value.trim();
+  if(!name) return;
+  await addDoc(collection(db,'events',eventId,'rigging'), { name, load, max, desc });
+  document.getElementById('rigName').value=''; document.getElementById('rigLoad').value=''; document.getElementById('rigMax').value=''; document.getElementById('rigDesc').value='';
+  loadRiggingPoints(eventId);
+}
+
+/* ---- Kabelbelegung-Tab: Patchliste ---- */
+async function renderEvdKabel(el, eventId){
+  const cm = can('events_manage');
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Kabelbelegungsplan</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Welches Signal läuft über welches Kabel von wo nach wo.</p>'
+    + (cm ? '<div class="form-grid-3">'
+      + '<div class="field-group"><label class="field-label">Kanal/Nr.</label><input type="text" id="kabelNr" placeholder="z.B. 1"></div>'
+      + '<div class="field-group"><label class="field-label">Quelle</label><input type="text" id="kabelFrom" placeholder="z.B. Mikrofon Bühne links"></div>'
+      + '<div class="field-group"><label class="field-label">Ziel</label><input type="text" id="kabelTo" placeholder="z.B. Pult Kanal 1"></div>'
+      + '</div>'
+      + '<div class="form-grid-2">'
+      + '<div class="field-group"><label class="field-label">Kabeltyp</label><input type="text" id="kabelType" placeholder="z.B. XLR, DMX, HDMI"></div>'
+      + '<div class="field-group"><label class="field-label">Länge (m, optional)</label><input type="text" id="kabelLength" placeholder="z.B. 20"></div>'
+      + '</div>'
+      + '<button class="btn-primary" id="kabelAddBtn">Zeile hinzufügen</button>' : '')
+    + '<div id="kabelListEl" style="margin-top:16px"></div>'
+    + '</div>';
+  if(cm) document.getElementById('kabelAddBtn').addEventListener('click', ()=>addKabelZeile(eventId));
+  loadKabelListe(eventId);
+}
+async function loadKabelListe(eventId){
+  const el = document.getElementById('kabelListEl');
+  if(!el) return;
+  const snap = await getDocs(collection(db,'events',eventId,'kabel'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(parseInt(a.nr)||0)-(parseInt(b.nr)||0));
+  const cm = can('events_manage');
+  if(!items.length){ el.innerHTML = '<div class="empty-hint">Noch keine Kabelbelegung erfasst.</div>'; return; }
+  el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12.5px">'
+    + '<thead><tr>'+['#','Quelle','Ziel','Typ','Länge',''].map(h=>'<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);color:var(--ink-faint);font-weight:600">'+h+'</th>').join('')+'</tr></thead>'
+    + '<tbody>' + items.map(k=>
+      '<tr>'
+      + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(k.nr||'')+'</td>'
+      + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(k.from||'')+'</td>'
+      + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(k.to||'')+'</td>'
+      + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(k.type||'')+'</td>'
+      + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(k.length?k.length+' m':'')+'</td>'
+      + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(cm?'<button data-delkabel="'+k.id+'" class="link-btn">✕</button>':'')+'</td>'
+      + '</tr>'
+    ).join('') + '</tbody></table>';
+  if(cm) el.querySelectorAll('[data-delkabel]').forEach(b=>b.addEventListener('click', async()=>{ await deleteDoc(doc(db,'events',eventId,'kabel',b.dataset.delkabel)); loadKabelListe(eventId); }));
+}
+async function addKabelZeile(eventId){
+  const nr = document.getElementById('kabelNr').value.trim();
+  const from = document.getElementById('kabelFrom').value.trim();
+  const to = document.getElementById('kabelTo').value.trim();
+  const type = document.getElementById('kabelType').value.trim();
+  const length = document.getElementById('kabelLength').value.trim();
+  if(!from || !to) return;
+  await addDoc(collection(db,'events',eventId,'kabel'), { nr, from, to, type, length });
+  document.getElementById('kabelNr').value=''; document.getElementById('kabelFrom').value=''; document.getElementById('kabelTo').value=''; document.getElementById('kabelType').value=''; document.getElementById('kabelLength').value='';
+  loadKabelListe(eventId);
+}
+
+/* ---- DMX-Tab: Adressierungsliste mit Universum und Kanalbereich ---- */
+async function renderEvdDmx(el, eventId){
+  const cm = can('events_manage');
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">DMX-Adressierung</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Startadresse, Kanalanzahl und Universum pro Gerät. Warnt bei Adressüberschneidung im selben Universum.</p>'
+    + (cm ? '<div class="form-grid-3">'
+      + '<div class="field-group"><label class="field-label">Gerät</label><input type="text" id="dmxDevice" placeholder="z.B. Movinghead 1"></div>'
+      + '<div class="field-group"><label class="field-label">Universum</label><input type="text" id="dmxUniverse" placeholder="z.B. 1" value="1"></div>'
+      + '<div class="field-group"><label class="field-label">Startadresse</label><input type="text" id="dmxStart" placeholder="z.B. 1"></div>'
+      + '</div>'
+      + '<div class="field-group" style="max-width:220px"><label class="field-label">Anzahl Kanäle</label><input type="text" id="dmxChannels" placeholder="z.B. 16"></div>'
+      + '<button class="btn-primary" id="dmxAddBtn">Gerät hinzufügen</button>' : '')
+    + '<div id="dmxListEl" style="margin-top:16px"></div>'
+    + '</div>';
+  if(cm) document.getElementById('dmxAddBtn').addEventListener('click', ()=>addDmxDevice(eventId));
+  loadDmxDevices(eventId);
+}
+async function loadDmxDevices(eventId){
+  const el = document.getElementById('dmxListEl');
+  if(!el) return;
+  const snap = await getDocs(collection(db,'events',eventId,'dmx'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(parseInt(a.universe)||0)-(parseInt(b.universe)||0) || (parseInt(a.start)||0)-(parseInt(b.start)||0));
+  const cm = can('events_manage');
+  if(!items.length){ el.innerHTML = '<div class="empty-hint">Noch keine DMX-Geräte erfasst.</div>'; return; }
+  // Überschneidungen im selben Universum erkennen
+  const conflicts = new Set();
+  items.forEach((a,i)=>{
+    const aStart = parseInt(a.start)||0, aEnd = aStart + (parseInt(a.channels)||1) - 1;
+    items.forEach((b,j)=>{
+      if(i===j || a.universe!==b.universe) return;
+      const bStart = parseInt(b.start)||0, bEnd = bStart + (parseInt(b.channels)||1) - 1;
+      if(aStart<=bEnd && bStart<=aEnd){ conflicts.add(a.id); conflicts.add(b.id); }
+    });
+  });
+  el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12.5px">'
+    + '<thead><tr>'+['Gerät','Universum','Start','Kanäle','Bereich',''].map(h=>'<th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);color:var(--ink-faint);font-weight:600">'+h+'</th>').join('')+'</tr></thead>'
+    + '<tbody>' + items.map(d=>{
+      const start = parseInt(d.start)||0, end = start + (parseInt(d.channels)||1) - 1;
+      const conflict = conflicts.has(d.id);
+      return '<tr style="'+(conflict?'background:var(--danger-soft)':'')+'">'
+        + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+d.device+(conflict?' <span style="color:var(--danger);font-weight:600">⚠</span>':'')+'</td>'
+        + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+d.universe+'</td>'
+        + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+start+'</td>'
+        + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(d.channels||1)+'</td>'
+        + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+start+'–'+end+'</td>'
+        + '<td style="padding:7px 8px;border-bottom:1px solid var(--line)">'+(cm?'<button data-deldmx="'+d.id+'" class="link-btn">✕</button>':'')+'</td>'
+        + '</tr>';
+    }).join('') + '</tbody></table>'
+    + (conflicts.size ? '<div style="margin-top:10px;font-size:12px;color:var(--danger)">⚠ Adressüberschneidung erkannt – bitte Startadressen anpassen.</div>' : '');
+  if(cm) el.querySelectorAll('[data-deldmx]').forEach(b=>b.addEventListener('click', async()=>{ await deleteDoc(doc(db,'events',eventId,'dmx',b.dataset.deldmx)); loadDmxDevices(eventId); }));
+}
+async function addDmxDevice(eventId){
+  const device = document.getElementById('dmxDevice').value.trim();
+  const universe = document.getElementById('dmxUniverse').value.trim() || '1';
+  const start = document.getElementById('dmxStart').value.trim();
+  const channels = document.getElementById('dmxChannels').value.trim() || '1';
+  if(!device || !start) return;
+  await addDoc(collection(db,'events',eventId,'dmx'), { device, universe, start, channels });
+  document.getElementById('dmxDevice').value=''; document.getElementById('dmxStart').value=''; document.getElementById('dmxChannels').value='';
+  loadDmxDevices(eventId);
+}
+
+/* ---- Grundriss-Tab: einfacher Positions-Editor auf Canvas ---- */
+async function renderEvdGrundriss(el, eventId){
+  const cm = can('events_manage');
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Bühnen-/Grundrissplan</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Positionen von Boxen, Scheinwerfern und Mikrofonen grob einzeichnen. Klick auf die Fläche setzt ein Element.</p>'
+    + (cm ? '<div class="form-grid-2" style="max-width:420px">'
+      + '<div class="field-group"><label class="field-label">Element-Typ</label><select id="grndType"><option value="🔊">🔊 Lautsprecher</option><option value="💡">💡 Scheinwerfer</option><option value="🎤">🎤 Mikrofon</option><option value="🎹">🎹 Instrument</option><option value="📦">📦 Sonstiges</option></select></div>'
+      + '<div class="field-group"><label class="field-label">Beschriftung</label><input type="text" id="grndLabel" placeholder="z.B. Main PA links"></div>'
+      + '</div>'
+      + '<p style="font-size:11.5px;color:var(--ink-faint);margin-bottom:10px">Auf die Fläche klicken, um das Element dort zu platzieren.</p>' : '')
+    + '<div id="grndCanvasWrap" style="position:relative;width:100%;max-width:700px;aspect-ratio:16/10;background:var(--panel-sunken);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;cursor:'+(cm?'crosshair':'default')+'"></div>'
+    + '</div>';
+  loadGrundrissItems(eventId, cm);
+}
+async function loadGrundrissItems(eventId, cm){
+  const wrap = document.getElementById('grndCanvasWrap');
+  if(!wrap) return;
+  const snap = await getDocs(collection(db,'events',eventId,'grundriss'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  wrap.innerHTML = items.map(i=>
+    '<div data-grnditem="'+i.id+'" title="'+(i.label||'')+'" style="position:absolute;left:'+i.x+'%;top:'+i.y+'%;transform:translate(-50%,-50%);font-size:22px;cursor:pointer;user-select:none">'+i.type+'</div>'
+  ).join('');
+  if(cm){
+    wrap.addEventListener('click', async(e)=>{
+      if(e.target.closest('[data-grnditem]')) return;
+      const rect = wrap.getBoundingClientRect();
+      const x = ((e.clientX-rect.left)/rect.width*100).toFixed(1);
+      const y = ((e.clientY-rect.top)/rect.height*100).toFixed(1);
+      const type = document.getElementById('grndType').value;
+      const label = document.getElementById('grndLabel').value.trim();
+      await addDoc(collection(db,'events',eventId,'grundriss'), { type, label, x, y });
+      loadGrundrissItems(eventId, cm);
+    });
+    wrap.querySelectorAll('[data-grnditem]').forEach(elItem=>elItem.addEventListener('click', async(e)=>{
+      e.stopPropagation();
+      if(confirm('Dieses Element entfernen?')){ await deleteDoc(doc(db,'events',eventId,'grundriss',elItem.dataset.grnditem)); loadGrundrissItems(eventId, cm); }
+    }));
+  }
+}
+
+/* ---- Sicherheit-Tab: Gefährdungsbeurteilung / Checkliste ---- */
+const SICHERHEIT_CHECKLIST_ITEMS = [
+  ['fluchtwege','Fluchtwege frei und gekennzeichnet'],
+  ['standsicherheit','Standsicherheit von Traversen/Aufbauten geprüft'],
+  ['kabelverlegung','Kabel gegen Stolperfallen gesichert (Kabelbrücken)'],
+  ['ersthilfe','Erste-Hilfe-Material verfügbar und Standort bekannt'],
+  ['brandschutz','Feuerlöscher/Brandschutz vor Ort geprüft'],
+  ['notfallkontakt','Notfallkontakte (Hausmeister, Elektriker) hinterlegt'],
+  ['aufsicht','Verantwortliche Aufsichtsperson (Lehrkraft) benannt'],
+  ['elektro','Elektrische Geräte optisch auf Schäden geprüft']
+];
+async function renderEvdSicherheit(el, eventId){
+  const cm = can('events_manage');
+  el.innerHTML = '<div class="card"><div class="skel skel-line" style="width:60%"></div></div>';
+  const snap = await getDoc(doc(db,'events',eventId,'meta','sicherheit'));
+  const data = snap.exists() ? snap.data() : {};
+  const checklist = data.checklist || {};
+  const done = SICHERHEIT_CHECKLIST_ITEMS.filter(([id])=>checklist[id]).length;
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Gefährdungsbeurteilung & Sicherheitscheckliste<span style="font-size:12px;font-weight:500;color:var(--ink-faint)">'+done+' / '+SICHERHEIT_CHECKLIST_ITEMS.length+'</span></div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Vor jeder Veranstaltung durchgehen. Alle Punkte müssen erledigt sein, bevor Publikum eingelassen wird.</p>'
+    + SICHERHEIT_CHECKLIST_ITEMS.map(([id,label])=>
+        '<label style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer">'
+        + '<input type="checkbox" data-sicherheititem="'+id+'" '+(checklist[id]?'checked':'')+' '+(cm?'':'disabled')+' style="width:16px;height:16px">'+label+'</label>'
+      ).join('')
+    + '<div class="field-group" style="margin-top:16px"><label class="field-label">Notfallkontakte / Notizen</label><textarea id="sicherheitNotes" rows="3" placeholder="z.B. Hausmeister: 0123-456789, nächstes Krankenhaus: …" '+(cm?'':'disabled')+'>'+(data.notes||'')+'</textarea></div>'
+    + (cm ? '<button class="btn-primary" id="sicherheitSaveBtn">Speichern</button>' : '')
+    + '</div>';
+  if(cm){
+    document.getElementById('sicherheitSaveBtn').addEventListener('click', async()=>{
+      const newChecklist = {};
+      el.querySelectorAll('[data-sicherheititem]').forEach(cb=>{ newChecklist[cb.dataset.sicherheititem] = cb.checked; });
+      const notes = document.getElementById('sicherheitNotes').value.trim();
+      await setDoc(doc(db,'events',eventId,'meta','sicherheit'), { checklist:newChecklist, notes, updatedBy: CU.username, updatedAt: serverTimestamp() });
+      const btn = document.getElementById('sicherheitSaveBtn');
+      const orig = btn.textContent; btn.textContent='✓ Gespeichert'; setTimeout(()=>btn.textContent=orig,1600);
+      renderEvdSicherheit(el, eventId);
+    });
+  }
+}
+
+/* ---- Leihgeräte-Tab: Fremdverleih-Tracking ---- */
+async function renderEvdLeihgeraete(el, eventId){
+  const cm = can('events_manage');
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Leihgeräte</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Was ist für diese Veranstaltung von wem geliehen, und wann muss es zurück.</p>'
+    + (cm ? '<div class="form-grid-3">'
+      + '<div class="field-group"><label class="field-label">Gerät</label><input type="text" id="leihGeraet" placeholder="z.B. Zusatzscheinwerfer"></div>'
+      + '<div class="field-group"><label class="field-label">Geliehen von</label><input type="text" id="leihVon" placeholder="z.B. Nachbarschule, Verleihfirma"></div>'
+      + '<div class="field-group"><label class="field-label">Rückgabe bis</label><input type="text" id="leihRueckgabe" placeholder="TT.MM.JJJJ"></div>'
+      + '</div>'
+      + '<button class="btn-primary" id="leihAddBtn">Hinzufügen</button>' : '')
+    + '<div id="leihListEl" style="margin-top:16px"></div>'
+    + '</div>';
+  if(cm) document.getElementById('leihAddBtn').addEventListener('click', ()=>addLeihgeraet(eventId));
+  loadLeihgeraete(eventId);
+}
+async function loadLeihgeraete(eventId){
+  const el = document.getElementById('leihListEl');
+  if(!el) return;
+  const snap = await getDocs(collection(db,'events',eventId,'leihgeraete'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+  const cm = can('events_manage');
+  if(!items.length){ el.innerHTML = '<div class="empty-hint">Keine Leihgeräte erfasst.</div>'; return; }
+  el.innerHTML = items.map(l=>
+    '<div class="list-row"><div class="list-row-text"><div class="list-row-title">'+l.geraet+(l.returned?' <span class="tag-badge" style="background:var(--success-soft);color:var(--success)">Zurückgegeben</span>':'')+'</div>'
+    + '<div class="list-row-meta">Von: '+(l.von||'–')+(l.rueckgabe?' · Rückgabe bis: '+l.rueckgabe:'')+'</div></div>'
+    + (cm ? '<button data-toggleleih="'+l.id+'" class="btn-secondary">'+(l.returned?'Als offen markieren':'Als zurückgegeben markieren')+'</button><button data-delleih="'+l.id+'" class="link-btn" style="margin-left:8px">✕</button>' : '')
+    + '</div>'
+  ).join('');
+  if(cm){
+    el.querySelectorAll('[data-toggleleih]').forEach(b=>b.addEventListener('click', async()=>{
+      const item = items.find(x=>x.id===b.dataset.toggleleih);
+      await updateDoc(doc(db,'events',eventId,'leihgeraete',b.dataset.toggleleih), { returned: !item.returned });
+      loadLeihgeraete(eventId);
+    }));
+    el.querySelectorAll('[data-delleih]').forEach(b=>b.addEventListener('click', async()=>{ await deleteDoc(doc(db,'events',eventId,'leihgeraete',b.dataset.delleih)); loadLeihgeraete(eventId); }));
+  }
+}
+async function addLeihgeraet(eventId){
+  const geraet = document.getElementById('leihGeraet').value.trim();
+  const von = document.getElementById('leihVon').value.trim();
+  const rueckgabe = document.getElementById('leihRueckgabe').value.trim();
+  if(!geraet) return;
+  await addDoc(collection(db,'events',eventId,'leihgeraete'), { geraet, von, rueckgabe, returned:false });
+  document.getElementById('leihGeraet').value=''; document.getElementById('leihVon').value=''; document.getElementById('leihRueckgabe').value='';
+  loadLeihgeraete(eventId);
+}
+
+/* ---- Nachbereitung-Tab: Feedback nach der Veranstaltung ---- */
+async function renderEvdFeedback(el, eventId){
+  el.innerHTML =
+    '<div class="card">'
+    + '<div class="card-title">Nachbereitung & Feedback</div>'
+    + '<p style="font-size:12.5px;color:var(--ink-faint);margin-bottom:14px">Was lief gut, was sollte beim nächsten Mal anders laufen? Für alle Teammitglieder offen.</p>'
+    + '<div class="field-group"><label class="field-label">Dein Feedback</label><textarea id="fbText" rows="3" placeholder="z.B. Soundcheck hätte früher starten sollen…"></textarea></div>'
+    + '<button class="btn-primary" id="fbSendBtn">Absenden</button>'
+    + '<div id="fbListEl" style="margin-top:18px"></div>'
+    + '</div>';
+  document.getElementById('fbSendBtn').addEventListener('click', ()=>addFeedback(eventId));
+  loadFeedback(eventId);
+}
+async function loadFeedback(eventId){
+  const el = document.getElementById('fbListEl');
+  if(!el) return;
+  const snap = await getDocs(collection(db,'events',eventId,'feedback'));
+  const items = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  el.innerHTML = items.length ? items.map(f=>
+    '<div class="list-row"><div class="list-row-text"><div class="list-row-title">'+(USER_MAP_CACHE[f.username]?.displayName||f.username)+'</div><div class="list-row-meta">'+(f.text||'').replace(/</g,'&lt;')+'</div></div>'
+    + '<div style="font-size:11px;color:var(--ink-faint)">'+fmtTimestamp(f.createdAt)+'</div></div>'
+  ).join('') : '<div class="empty-hint">Noch kein Feedback vorhanden.</div>';
+}
+async function addFeedback(eventId){
+  const text = document.getElementById('fbText').value.trim();
+  if(!text) return;
+  await addDoc(collection(db,'events',eventId,'feedback'), { text, username: CU.username, createdAt: serverTimestamp() });
+  document.getElementById('fbText').value = '';
+  loadFeedback(eventId);
 }
 
 /* ============================================================
