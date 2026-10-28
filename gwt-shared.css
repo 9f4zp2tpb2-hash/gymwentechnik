@@ -134,3 +134,5 @@ footer.gwt-footer{background:var(--ink);color:var(--paper);padding:5rem 3rem 2.5
 .ttt-cell:disabled{cursor:default;}
 .modal-status{min-height:3.4rem;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:center;}
 @media(max-width:768px){.band{padding:3.5rem 1.5rem;}}
+
+[hidden]{display:none!important;}

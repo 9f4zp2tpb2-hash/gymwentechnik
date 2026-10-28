@@ -1,563 +1,218 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <script src="https://gymwentechnik.de/gwt-global.js" defer>
-  // Dark/Light-Mode-Umschalter
-  (function(){
-    var stored=localStorage.getItem('gwt_theme');
-    if(stored==='light')document.body.classList.add('light');
-    var btn=document.getElementById('themeToggleBtn');
-    if(btn){
-      btn.textContent=document.body.classList.contains('light')?'\u2600\ufe0f':'\U0001f319';
-      btn.addEventListener('click',function(){
-        var isLight=document.body.classList.toggle('light');
-        localStorage.setItem('gwt_theme',isLight?'light':'dark');
-        btn.textContent=isLight?'\u2600\ufe0f':'\U0001f319';
-      });
-    }
-  })();
-</script>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Galerie – GymWenTechnik</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --black:#2C2C3A; --dark:#23232f; --mid:#1e1e28; --border:#3a3a4a;
-      --text:#d4d0c8; --muted:#8888a0; --accent:#1EAE95; --accent2:#B01C75; --accent3:#21860E; --white:#f0ece3;
-    }
-
-    body.light { --black:#f5f5f5; --dark:#ffffff; --mid:#ebebeb; --border:#d0d0d0; --text:#2a2a2a; --muted:#888; --white:#1a1a1a; background:var(--black); }
-    body.light nav { background:rgba(245,245,245,0.97); }
-    body.light .hero-bg { background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.10) 0%, transparent 70%), #f0f0f0; }
-    .theme-toggle { background:none; border:1px solid var(--border); color:var(--muted); font-size:0.85rem; width:34px; height:34px; cursor:pointer; border-radius:50%; transition:all 0.2s; }
-    .theme-toggle:hover { border-color:var(--accent); color:var(--accent); }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; cursor: none; }
-    #cursor { width: 12px; height: 12px; background: var(--accent); border-radius: 50%; position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; transition: transform 0.15s ease; mix-blend-mode: difference; }
-
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 3rem; background: rgba(44,44,58,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
-    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent); text-decoration: none; }
-    .nav-logo span { color: var(--white); }
-    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
-    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.82rem; letter-spacing: 0.15em; text-transform: uppercase; transition: color 0.2s; }
-    .nav-links a:hover, .nav-links a.active { color: var(--accent); }
-    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; padding: 6px; cursor: pointer; z-index: 300; }
-    .hamburger span { width: 26px; height: 2px; background: var(--text); display: block; pointer-events: none; }
-    .mobile-menu { display: none; position: fixed; inset: 0; background: rgba(35,35,47,0.99); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 2.5rem; }
-    .mobile-menu.open { display: flex; }
-    .mobile-menu a { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; color: var(--white); text-decoration: none; letter-spacing: 0.1em; transition: color 0.2s; }
-    .mobile-menu a:hover { color: var(--accent); }
-    .close-menu { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--white); font-size: 2.8rem; line-height: 1; cursor: pointer; padding: 0.25rem 0.5rem; }
-
-    #page-hero { min-height: 60vh; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 3rem 5rem; position: relative; overflow: hidden; }
-    .hero-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 70% 40%, rgba(30,174,149,0.08) 0%, transparent 70%), radial-gradient(ellipse 40% 80% at 20% 80%, rgba(176,28,117,0.07) 0%, transparent 60%), linear-gradient(180deg, #2C2C3A 0%, #23232f 100%); }
-    .beams { position: absolute; inset: 0; pointer-events: none; }
-    .beam { position: absolute; top: -10%; width: 2px; height: 110vh; background: linear-gradient(180deg, rgba(30,174,149,0.22) 0%, transparent 100%); transform-origin: top center; animation: flicker 4s infinite; }
-    .beam:nth-child(1) { left: 20%; transform: rotate(-8deg); }
-    .beam:nth-child(2) { left: 50%; transform: rotate(0deg); animation-delay: 1.2s; opacity: 0.7; }
-    .beam:nth-child(3) { left: 78%; transform: rotate(7deg); animation-delay: 2.4s; }
-    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} 75%{opacity:0.9} }
-    .hero-breadcrumb { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); margin-bottom: 1.2rem; position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.7s 0.1s forwards; }
-    .hero-breadcrumb a { color: var(--accent); text-decoration: none; }
-    .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem, 10vw, 9rem); line-height: 0.92; color: var(--white); position: relative; z-index: 2; opacity: 0; animation: fadeUp 0.8s 0.3s forwards; }
-    .hero-title .accent { color: var(--accent); }
-    .hero-title .dim { color: var(--muted); font-size: 0.55em; display: block; }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
-
-    section { padding: 7rem 3rem; }
-    .section-label { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
-    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem, 5vw, 4.5rem); color: var(--white); line-height: 1; margin-bottom: 1.5rem; }
-    .divider { width: 60px; height: 2px; background: var(--accent); margin-bottom: 3rem; }
-
-    /* GALLERY */
-    .gal-grid { columns: 3; column-gap: 4px; max-width: 1200px; }
-    .img-slot { position: relative; background: var(--mid); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
-    .img-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .img-slot.empty::before { content: '🖼️ Noch kein Bild'; }
-    .hero-img-slot { position: absolute; top: 0; right: 0; width: 45%; height: 100%; z-index: 1; overflow: hidden; border: none; }
-    .hero-img-slot img { opacity: 0.85; }
-    .hero-img-slot::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--black) 0%, rgba(44,44,58,0.5) 35%, transparent 75%), linear-gradient(180deg, transparent 55%, var(--black) 100%); }
-    .hero-img-slot.empty { display: none; background: none; }
-    .hero-img-slot.empty::before { content: ''; }
-    @media (max-width: 900px) { .hero-img-slot { display: none !important; } }
-    .gal-cat-filter { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 2rem; }
-    .gal-cat-filter button { font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.5rem 1.1rem; border: 1px solid var(--border); background: none; color: var(--muted); cursor: pointer; transition: all 0.2s; }
-    .gal-cat-filter button:hover { color: var(--text); border-color: var(--accent); }
-    .gal-cat-filter button.active { background: var(--accent); color: var(--white); border-color: var(--accent); }
-    .gal-item { break-inside: avoid; margin-bottom: 4px; overflow: hidden; position: relative; background: var(--mid); display: block; cursor: pointer; }
-    .gal-like-row { display: flex; justify-content: flex-end; padding: 0.3rem 0.5rem; }
-    .gal-like-btn { background: none; border: none; color: var(--muted); font-size: 0.78rem; cursor: pointer; padding: 0.2rem 0.5rem; transition: color 0.2s; }
-    .gal-like-btn:hover,.gal-like-btn.liked { color: var(--accent2); }
-    .gal-like-btn.liked { font-weight: 500; }
-    .slideshow-btn { background: var(--mid); border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans',sans-serif; font-size: 0.82rem; padding: 0.6rem 1.2rem; cursor: pointer; margin-bottom: 1rem; letter-spacing: 0.06em; transition: all 0.2s; }
-    .slideshow-btn:hover { background: var(--accent); color: var(--white); border-color: var(--accent); }
-    .slideshow-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.97); z-index: 600; flex-direction: column; align-items: center; justify-content: center; }
-    .slideshow-overlay.open { display: flex; }
-    .slideshow-img-wrap { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; padding: 1rem; }
-    .slideshow-img-wrap img,.slideshow-img-wrap video { max-width: 90vw; max-height: 75vh; object-fit: contain; }
-    .slideshow-controls { display: flex; align-items: center; gap: 1.5rem; padding: 1rem 2rem; flex-wrap: wrap; justify-content: center; }
-    .slideshow-ctrl-btn { background: none; border: 1px solid rgba(255,255,255,0.2); color: var(--text); font-size: 1.2rem; width: 44px; height: 44px; cursor: pointer; transition: all 0.2s; border-radius: 2px; }
-    .slideshow-ctrl-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--white); }
-    .slideshow-counter { font-size: 0.82rem; color: var(--muted); min-width: 80px; text-align: center; }
-    .slideshow-caption { font-size: 0.85rem; color: var(--muted); max-width: 600px; text-align: center; padding: 0 1rem; }
-    .gal-video-item video { width: 100%; aspect-ratio: 16/9; display: block; background: #000; }
-    .gal-video-badge { position: absolute; top: 0.4rem; left: 0.4rem; background: rgba(0,0,0,0.7); color: var(--white); font-size: 0.65rem; padding: 0.15rem 0.4rem; letter-spacing: 0.08em; }
-    .gal-item img { width: 100%; display: block; transition: transform 0.4s ease; }
-    .gal-item:hover img { transform: scale(1.04); }
-    .gal-caption { position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem 1.2rem; background: linear-gradient(transparent, rgba(0,0,0,0.8)); color: var(--text); font-size: 0.78rem; letter-spacing: 0.08em; opacity: 0; transition: opacity 0.25s; }
-    .gal-item:hover .gal-caption { opacity: 1; }
-
-    /* EMPTY */
-    .gal-empty { color: var(--muted); padding: 4rem 0; text-align: center; max-width: 1200px; border: 1px dashed var(--border); display: flex; flex-direction: column; align-items: center; gap: 1rem; }
-    .gal-empty svg { width: 48px; height: 48px; opacity: 0.3; }
-    .gal-empty-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--muted); }
-    .gal-empty p { font-size: 0.82rem; }
-    .gal-empty a { color: var(--accent); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.15em; text-transform: uppercase; border-bottom: 1px solid var(--accent); padding-bottom: 2px; }
-
-    /* LIGHTBOX */
-    .lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.96); z-index: 300; align-items: center; justify-content: center; }
-    .lightbox.open { display: flex; }
-    .lightbox img { max-width: 90vw; max-height: 88vh; object-fit: contain; display: block; }
-    .lightbox-close { position: absolute; top: 1.5rem; right: 2rem; background: none; border: none; color: var(--muted); font-size: 2.5rem; cursor: pointer; line-height: 1; transition: color 0.2s; }
-    .lightbox-close:hover { color: var(--accent); }
-    .lightbox-caption { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); font-size: 0.82rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
-    .lightbox-nav { position: absolute; top: 50%; transform: translateY(-50%); background: none; border: 1px solid var(--border); color: var(--muted); font-size: 1.5rem; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; }
-    .lightbox-nav:hover { border-color: var(--accent); color: var(--accent); }
-    .lightbox-prev { left: 2rem; }
-    .lightbox-next { right: 2rem; }
-
-    footer { background: var(--dark); border-top: 1px solid var(--border); padding: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-    .footer-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; color: var(--accent); letter-spacing: 0.1em; }
-    .footer-text { font-size: 0.78rem; color: var(--muted); }
-    .footer-legal { display: flex; gap: 1.5rem; }
-    .footer-legal a { font-size: 0.78rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-    .footer-legal a:hover { color: var(--accent); }
-
-    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-
-    @media (max-width: 900px) { .gal-grid { columns: 2; } }
-    @media (max-width: 768px) {
-      nav { padding: 1rem 1.5rem; }
-      .nav-links { display: none; }
-      .hamburger { display: flex; }
-      #page-hero { padding: 0 1.5rem 4rem; min-height: 50vh; }
-      section { padding: 5rem 1.5rem; }
-      .gal-grid { columns: 1; }
-      .lightbox-prev { left: 0.5rem; }
-      .lightbox-next { right: 0.5rem; }
-      footer { flex-direction: column; text-align: center; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://gymwentechnik.de/gwt-global.js"></script>
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=general-sans@300,400,500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://gymwentechnik.de/gwt-shared.css">
+<title>Galerie – GymWenTechnik</title>
+<meta name="description" content="Fotos und Videos der GymWenTechnik: Einblicke hinter die Kulissen der Bühnentechnik am Gymnasium Wendelstein." />
+<style>
+  .chips{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2rem;}
+  .chip{background:none;border:1px solid var(--fg);color:var(--fg);border-radius:100px;padding:.4rem 1.1rem;font:500 .9rem var(--sans);cursor:pointer;}
+  .chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);}
+  .gal-bar{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1.6rem;}
+  .gal-count{color:var(--muted);font-size:.9rem;}
+  .gal-grid{columns:4 230px;column-gap:1rem;}
+  .gal-item{break-inside:avoid;margin-bottom:1.2rem;}
+  .gal-open{display:block;width:100%;padding:0;border:0;background:var(--line);border-radius:16px;overflow:hidden;cursor:zoom-in;}
+  .gal-open img,.gal-item video{width:100%;display:block;border-radius:16px;}
+  .gal-open img{transition:transform .5s var(--ease);}
+  .gal-open:hover img{transform:scale(1.03);}
+  .gal-meta{display:flex;justify-content:space-between;align-items:flex-start;gap:.8rem;margin-top:.5rem;}
+  .gal-caption{font-size:.9rem;color:var(--muted);overflow-wrap:anywhere;}
+  .like{flex-shrink:0;background:none;border:1px solid var(--line);color:var(--fg);border-radius:100px;padding:.15rem .7rem;font:500 .82rem var(--sans);cursor:pointer;}
+  .like[aria-pressed="true"]{background:var(--magenta);border-color:var(--magenta);color:#fff;}
+  .skel{break-inside:avoid;margin-bottom:1rem;border-radius:16px;background:var(--line);animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{50%{opacity:.5}}
+  .empty{padding:3rem 0;color:var(--muted);}
+  .empty strong{display:block;font:600 1.6rem var(--display);color:var(--fg);margin-bottom:.4rem;}
+  /* Lightbox + Diashow */
+  .lb{display:none;position:fixed;inset:0;z-index:950;background:rgba(11,11,14,.96);color:var(--paper);flex-direction:column;align-items:center;justify-content:center;padding:4.5rem 1rem 6rem;}
+  .lb.open{display:flex;}
+  .lb-stage{max-width:94vw;max-height:100%;display:flex;align-items:center;justify-content:center;min-height:0;flex:1;}
+  .lb-stage img,.lb-stage video{max-width:94vw;max-height:100%;object-fit:contain;border-radius:8px;}
+  .lb-cap{margin-top:1rem;min-height:1.5em;text-align:center;color:#c8c8cf;max-width:70ch;}
+  .lb-ctrl{position:absolute;bottom:1.4rem;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:.6rem;}
+  .lb-btn{background:rgba(245,243,238,.1);border:1px solid rgba(245,243,238,.3);color:var(--paper);width:44px;height:44px;border-radius:50%;font-size:1.2rem;cursor:pointer;}
+  .lb-btn:hover{background:var(--lime);color:var(--ink);}
+  .lb-close{position:absolute;top:1.2rem;right:1.4rem;}
+  .lb-count{min-width:5ch;text-align:center;font-size:.9rem;color:#c8c8cf;}
+  .mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:0 auto 1rem;max-width:300px;}
+  .mem-card{height:64px;font-size:1.5rem;background:var(--bg);border:1px solid var(--line);border-radius:12px;cursor:pointer;color:var(--fg);}
+  .mem-card.found{background:var(--turq);}
+</style>
 </head>
-<body>
+<body data-page="galerie">
+<header class="page-hero">
+  <div class="img-slot" data-img-slot="galerie:hero"></div>
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="crumb"><a href="https://gymwentechnik.de">Startseite</a> / Galerie</div>
+  <h1><span id="galTitle" data-cms-key="hero.title">Unsere Galerie</span></h1>
+  <p class="lead" data-cms-key="hero.lead">Einblicke hinter die Kulissen</p>
+</header>
 
-<div id="cursor"></div>
-
-<nav>
-  <a href="https://gymwentechnik.de" class="nav-logo">GymWen<span>Technik</span></a>
-  <ul class="nav-links">
-    <li><a href="https://gymwentechnik.de/ueber.html">Über uns</a></li>
-    <li><a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a></li>
-    <li><a href="https://gymwentechnik.de/news.html">News</a></li>
-    <li><a href="https://gymwentechnik.de/galerie.html" class="active">Galerie</a></li>
-    <li><a href="https://gymwentechnik.de/kontakt.html">Kontakt</a></li>
-    <li><a href="https://gymwentechnik.de/suche.html">🔍</a></li>
-    <li><a href="https://gymwentechnik.de/intern.html">Intern</a></li>
-  </ul>
-  <button class="hamburger" id="menuBtn" aria-label="Menü öffnen">
-    <span></span><span></span><span></span>
-  </button>
-  <button class="theme-toggle" id="themeToggleBtn" title="Dark/Light">🌙</button>
-</nav>
-
-<div class="mobile-menu" id="mobileMenu">
-  <button class="close-menu" id="closeMenu" aria-label="Menü schließen">✕</button>
-  <a href="https://gymwentechnik.de/ueber.html">Über uns</a>
-  <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a>
-  <a href="https://gymwentechnik.de/news.html">News</a>
-  <a href="https://gymwentechnik.de/galerie.html">Galerie</a>
-  <a href="https://gymwentechnik.de/kontakt.html">Kontakt</a>
-  <a href="https://gymwentechnik.de/suche.html">Suche</a>
-  <a href="https://gymwentechnik.de/intern.html">Intern</a>
-</div>
-
-<section id="page-hero">
-  <div class="hero-bg"></div>
-  <div class="beams"><div class="beam"></div><div class="beam"></div><div class="beam"></div></div>
-  <div class="img-slot hero-img-slot empty" data-img-slot="galerie:hero"></div>
-  <div class="hero-breadcrumb"><a href="https://gymwentechnik.de">Startseite</a> &nbsp;/&nbsp; Galerie</div>
-  <h1 class="hero-title">Unsere<br><span class="accent">Galerie</span><span class="dim">Einblicke hinter die Kulissen</span></h1>
-</section>
-
-<section style="background: var(--dark);">
-  <div class="section-label">Fotos</div>
-  <h2 class="section-title">Bilder & Momente</h2>
-  <div class="divider"></div>
-  <div class="gal-cat-filter" id="galCatFilter" style="display:none"></div>
-  <div class="reveal" id="gal-wrap">
-    <p style="color:var(--muted)">Lade…</p>
+<main class="wrap"><div class="inner">
+  <div class="chips" id="chips" hidden></div>
+  <div id="galWrap" aria-live="polite">
+    <div class="gal-grid"><div class="skel" style="height:300px"></div><div class="skel" style="height:200px"></div><div class="skel" style="height:260px"></div><div class="skel" style="height:220px"></div><div class="skel" style="height:280px"></div><div class="skel" style="height:240px"></div></div>
   </div>
-</section>
+</div></main>
 
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lbClose">✕</button>
-  <button class="lightbox-nav lightbox-prev" id="lbPrev">‹</button>
-  <img id="lbImg" src="" alt="" />
-  <button class="lightbox-nav lightbox-next" id="lbNext">›</button>
-  <div class="lightbox-caption" id="lbCaption"></div>
-</div>
-
-<!-- Diashow-Overlay -->
-<div class="slideshow-overlay" id="slideshowOverlay">
-  <div class="slideshow-img-wrap" id="slideshowImgWrap"></div>
-  <div class="slideshow-caption" id="slideshowCaption"></div>
-  <div class="slideshow-controls">
-    <button class="slideshow-ctrl-btn" id="ssPrev">‹</button>
-    <button class="slideshow-ctrl-btn" id="ssPlayPause">⏸</button>
-    <div class="slideshow-counter" id="ssCounter">1 / 1</div>
-    <button class="slideshow-ctrl-btn" id="ssNext">›</button>
-    <button class="slideshow-ctrl-btn" id="ssClose" title="Schließen">✕</button>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Bildansicht">
+  <button type="button" class="lb-btn lb-close" id="lbClose" aria-label="Schließen">✕</button>
+  <div class="lb-stage" id="lbStage"></div>
+  <div class="lb-cap" id="lbCap"></div>
+  <div class="lb-ctrl">
+    <button type="button" class="lb-btn" id="lbPrev" aria-label="Zurück">‹</button>
+    <button type="button" class="lb-btn" id="lbPlay" aria-label="Diashow starten">▶</button>
+    <span class="lb-count" id="lbCount"></span>
+    <button type="button" class="lb-btn" id="lbNext" aria-label="Weiter">›</button>
   </div>
 </div>
 
-<footer>
-  <div class="footer-logo">GymWenTechnik</div>
-  <div class="footer-text">© 2026 Bühnentechnik Gymnasium Wendelstein</div>
-  <div class="footer-legal">
-    <a href="https://gymwentechnik.de/impressum.html">Impressum</a>
-    <a href="https://gymwentechnik.de/datenschutz.html">Datenschutz</a>
+<div class="modal" id="memOverlay" role="dialog" aria-modal="true" aria-labelledby="memHead">
+  <div class="modal-box">
+    <button type="button" class="modal-close" id="memClose" aria-label="Schließen">✕</button>
+    <h2 id="memHead">🎹 Musik-Memory</h2>
+    <p class="sub">Gefunden: <span id="memFound">0</span> / 8</p>
+    <div class="mem-grid" id="memGrid"></div>
+    <div class="modal-status" id="memStatus" aria-live="polite"></div>
+    <button type="button" class="btn" id="memRestart">Neu mischen</button>
   </div>
-</footer>
+</div>
 
-<!-- Regular JS: cursor, burger, reveal, lightbox controls -->
-<script>
-  var cursor = document.getElementById('cursor');
-  document.addEventListener('mousemove', function(e) {
-    cursor.style.left = (e.clientX - 6) + 'px';
-    cursor.style.top  = (e.clientY - 6) + 'px';
-  });
-
-  var menuBtn    = document.getElementById('menuBtn');
-  var closeBtn   = document.getElementById('closeMenu');
-  var mobileMenu = document.getElementById('mobileMenu');
-  menuBtn.addEventListener('click', function() { mobileMenu.classList.add('open'); });
-  closeBtn.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
-  mobileMenu.querySelectorAll('a').forEach(function(a) {
-    a.addEventListener('click', function() { mobileMenu.classList.remove('open'); });
-  });
-
-  var revObs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); }
-    });
-  }, { threshold: 0.08 });
-  document.querySelectorAll('.reveal').forEach(function(el) { revObs.observe(el); });
-
-  // Lightbox
-  var gallery  = [];
-  var lbIndex  = 0;
-  var lightbox = document.getElementById('lightbox');
-
-  function openLightbox(i) {
-    lbIndex = i;
-    updateLightbox();
-    lightbox.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeLightbox() {
-    lightbox.classList.remove('open');
-    document.body.style.overflow = '';
-  }
-  function updateLightbox() {
-    var img = gallery[lbIndex];
-    document.getElementById('lbImg').src = img.url;
-    document.getElementById('lbImg').alt = img.caption || '';
-    document.getElementById('lbCaption').textContent = img.caption || '';
-  }
-
-  document.getElementById('lbClose').addEventListener('click', closeLightbox);
-  lightbox.addEventListener('click', function(e) { if (e.target === lightbox) closeLightbox(); });
-  document.getElementById('lbPrev').addEventListener('click', function() {
-    lbIndex = (lbIndex - 1 + gallery.length) % gallery.length;
-    updateLightbox();
-  });
-  document.getElementById('lbNext').addEventListener('click', function() {
-    lbIndex = (lbIndex + 1) % gallery.length;
-    updateLightbox();
-  });
-  document.addEventListener('keydown', function(e) {
-    if (!lightbox.classList.contains('open')) return;
-    if (e.key === 'Escape') closeLightbox();
-    if (e.key === 'ArrowLeft')  { lbIndex = (lbIndex - 1 + gallery.length) % gallery.length; updateLightbox(); }
-    if (e.key === 'ArrowRight') { lbIndex = (lbIndex + 1) % gallery.length; updateLightbox(); }
-  });
-
-  // Called by Firebase module once images are loaded
-  var allItems = [];
-  var activeCat = '';
-  window.renderGallery = function(items, categories) {
-    allItems = items;
-    // Falls die Seite mit ?kategorie=ID aufgerufen wurde (Link von einer Veranstaltung aus), Filter automatisch aktivieren
-    var urlCat = new URLSearchParams(window.location.search).get('kategorie');
-    if (urlCat && categories.some(function(c) { return c.id === urlCat; })) activeCat = urlCat;
-    if (categories && categories.length) {
-      var filterEl = document.getElementById('galCatFilter');
-      filterEl.style.display = 'flex';
-      filterEl.innerHTML = '<button data-cat="">Alle</button>'
-        + categories.map(function(c) { return '<button data-cat="' + c.id + '">' + c.name + '</button>'; }).join('');
-      filterEl.querySelectorAll('button').forEach(function(btn) {
-        if (btn.dataset.cat === activeCat) btn.classList.add('active');
-        btn.addEventListener('click', function() {
-          activeCat = btn.dataset.cat;
-          filterEl.querySelectorAll('button').forEach(function(b) { b.classList.remove('active'); });
-          btn.classList.add('active');
-          renderFilteredGrid();
-        });
-      });
-      if (!activeCat) filterEl.querySelector('[data-cat=""]').classList.add('active');
-    }
-    renderFilteredGrid();
-    if (activeCat) document.getElementById('gal-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  // Browser-Fingerprint für Like-Funktion (kein Server nötig)
-  var BROWSER_ID = (function(){
-    try {
-      var id = localStorage.getItem('gwt_browser_id');
-      if (!id) { id = 'bid_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('gwt_browser_id', id); }
-      return id;
-    } catch(e) { return 'anon'; }
-  })();
-  var LIKES = {}; // imgId -> count
-  var MY_LIKES = (function(){ try{ return JSON.parse(localStorage.getItem('gwt_likes')||'{}'); }catch(e){return {};} })();
-
-  function saveLikes(){ try{ localStorage.setItem('gwt_likes', JSON.stringify(MY_LIKES)); }catch(e){} }
-
-  function renderFilteredGrid() {
-    var items = activeCat ? allItems.filter(function(i) { return i.categoryId === activeCat; }) : allItems;
-    gallery = items;
-    var wrap = document.getElementById('gal-wrap');
-    if (!items.length) {
-      wrap.innerHTML = '<div class="gal-empty">'
-        + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>'
-        + '<div class="gal-empty-title">Noch keine Fotos</div>'
-        + '<p>Fotos werden über den internen Bereich hochgeladen.</p>'
-        + '<a href="https://gymwentechnik.de/intern.html">Zum internen Bereich →</a>'
-        + '</div>';
-      return;
-    }
-
-    // Diashow-Button
-    var slideshowBtn = document.createElement('button');
-    slideshowBtn.className = 'slideshow-btn';
-    slideshowBtn.innerHTML = '▶ Diashow starten';
-    slideshowBtn.addEventListener('click', function() { startSlideshow(); });
-
-    var grid = document.createElement('div');
-    grid.className = 'gal-grid';
-    items.forEach(function(img, i) {
-      var liked = !!MY_LIKES[img.url];
-      var likeCount = img.likes || 0;
-      var item = document.createElement('div');
-      item.className = 'gal-item';
-      var isVideo = img.isVideo || (img.url && (img.url.includes('.mp4') || img.url.includes('.webm') || img.url.includes('/video/')));
-      item.className = 'gal-item' + (isVideo ? ' gal-video-item' : '');
-      item.innerHTML = (isVideo
-        ? '<video src="' + img.url + '" preload="metadata" playsinline muted loop controls style="width:100%;display:block"></video>'
-          + '<div class="gal-video-badge">▶ Video</div>'
-        : '<img src="' + img.url + '" alt="' + (img.caption || '') + '" loading="lazy" />'
-      )
-        + '<div class="gal-caption">' + (img.caption || '') + '</div>'
-        + '<div class="gal-like-row">'
-        + '<button class="gal-like-btn' + (liked ? ' liked' : '') + '" data-imgurl="' + img.url + '" data-liked="' + (liked?'1':'0') + '">'
-        + '♥ <span class="gal-like-count">' + likeCount + '</span></button>'
-        + '</div>';
-      item.querySelector('img').addEventListener('click', function() { openLightbox(i); });
-      item.querySelector('.gal-like-btn').addEventListener('click', function(e) {
-        e.stopPropagation();
-        toggleLike(this, img);
-      });
-      grid.appendChild(item);
-    });
-    wrap.innerHTML = '';
-    wrap.appendChild(slideshowBtn);
-    wrap.appendChild(grid);
-  }
-
-  function toggleLike(btn, img) {
-    var liked = btn.dataset.liked === '1';
-    var countEl = btn.querySelector('.gal-like-count');
-    var current = parseInt(countEl.textContent) || 0;
-    if (liked) {
-      MY_LIKES[img.url] = false;
-      btn.dataset.liked = '0';
-      btn.classList.remove('liked');
-      countEl.textContent = Math.max(0, current - 1);
-      img.likes = Math.max(0, (img.likes||0) - 1);
-    } else {
-      MY_LIKES[img.url] = true;
-      btn.dataset.liked = '1';
-      btn.classList.add('liked');
-      countEl.textContent = current + 1;
-      img.likes = (img.likes||0) + 1;
-    }
-    saveLikes();
-    // Like auch in Firestore persistieren (optimistisch, kein Fehler-Handling nötig)
-    if (window._galDb && img.id) {
-      import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(fs) {
-        fs.updateDoc(fs.doc(window._galDb, 'gallery', img.id), { likes: img.likes });
-      }).catch(function(){});
-    }
-  }
-
-  // DIASHOW
-  var ssIdx=0, ssTimer=null, ssRunning=true;
-  function startSlideshow(){
-    if(!gallery.length)return;
-    ssIdx=0; ssRunning=true;
-    renderSsSlide();
-    document.getElementById('slideshowOverlay').classList.add('open');
-    ssTimer=setInterval(function(){if(ssRunning)ssAdvance(1);},4000);
-  }
-  function renderSsSlide(){
-    var img=gallery[ssIdx];
-    var wrap=document.getElementById('slideshowImgWrap');
-    var isVideo=img.url&&(img.url.includes('.mp4')||img.url.includes('.webm'));
-    wrap.innerHTML=isVideo
-      ?'<video src="'+img.url+'" autoplay muted loop playsinline style="max-width:90vw;max-height:75vh"></video>'
-      :'<img src="'+img.url+'" alt="'+(img.caption||'')+'" style="max-width:90vw;max-height:75vh;object-fit:contain"/>';
-    document.getElementById('slideshowCaption').textContent=img.caption||'';
-    document.getElementById('ssCounter').textContent=(ssIdx+1)+' / '+gallery.length;
-  }
-  function ssAdvance(d){
-    ssIdx=(ssIdx+d+gallery.length)%gallery.length;
-    renderSsSlide();
-  }
-  function closeSlideshow(){
-    clearInterval(ssTimer);
-    document.getElementById('slideshowOverlay').classList.remove('open');
-  }
-  document.getElementById('ssPrev').addEventListener('click',function(){ssAdvance(-1);});
-  document.getElementById('ssNext').addEventListener('click',function(){ssAdvance(1);});
-  document.getElementById('ssClose').addEventListener('click',closeSlideshow);
-  document.getElementById('ssPlayPause').addEventListener('click',function(){
-    ssRunning=!ssRunning;
-    this.textContent=ssRunning?'⏸':'▶';
-  });
-  document.addEventListener('keydown',function(e){
-    if(!document.getElementById('slideshowOverlay').classList.contains('open'))return;
-    if(e.key==='ArrowLeft')ssAdvance(-1);
-    else if(e.key==='ArrowRight')ssAdvance(1);
-    else if(e.key==='Escape')closeSlideshow();
-  });
-
-  window.startSlideshow=startSlideshow;
-</script>
-
-<!-- Firebase module: loads gallery data -->
+<script type="module" src="https://gymwentechnik.de/gwt-shared.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { db, esc } from "https://gymwentechnik.de/gwt-shared.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const app = initializeApp({
-  apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
-  authDomain: "gwt-database.firebaseapp.com",
-  projectId: "gwt-database",
-  storageBucket: "gwt-database.firebasestorage.app",
-  messagingSenderId: "410076918223",
-  appId: "1:410076918223:web:3c7bb9a2084fdc83b9a2ba"
-});
-const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const safe = u => /^https:\/\//i.test(u || '') ? u : '';
+const isVideo = g => g.isVideo || /\.(mp4|webm)(\?|$)|\/video\//i.test(g.url || '');
+let all = [], cats = [], active = '', shown = [];
+let MY = {}; try { MY = JSON.parse(localStorage.getItem('gwt_likes') || '{}'); } catch (e) {}
+const saveLikes = () => { try { localStorage.setItem('gwt_likes', JSON.stringify(MY)); } catch (e) {} };
 
-try {
-  const snap  = await getDocs(collection(db, 'gallery'));
-  const items = snap.docs.map(d => d.data());
-  const catSnap = await getDocs(collection(db, 'gallery_categories'));
-  const categories = catSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-  window.renderGallery(items, categories);
-} catch(e) {
-  document.getElementById('gal-wrap').innerHTML = '<p style="color:var(--muted)">Fehler beim Laden der Galerie.</p>';
+function mk(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function render() {
+  const wrap = $('galWrap');
+  shown = active ? all.filter(g => g.categoryId === active) : all;
+  wrap.replaceChildren();
+  if (!shown.length) {
+    wrap.innerHTML = '<div class="empty"><strong>Noch keine Fotos</strong>Hier erscheinen bald Bilder von unseren Veranstaltungen.</div>';
+    return;
+  }
+  const bar = mk('div', 'gal-bar');
+  const play = mk('button', 'btn', 'Diashow starten'); play.type = 'button';
+  play.addEventListener('click', () => openLb(0, true));
+  bar.append(play, mk('span', 'gal-count', shown.length + (shown.length === 1 ? ' Eintrag' : ' Einträge')));
+  const grid = mk('div', 'gal-grid');
+  shown.forEach((g, i) => {
+    const fig = mk('figure', 'gal-item');
+    if (isVideo(g)) {
+      const v = document.createElement('video');
+      v.src = g.url; v.controls = true; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'metadata';
+      fig.append(v);
+    } else {
+      const open = mk('button', 'gal-open'); open.type = 'button'; open.setAttribute('aria-label', 'Foto vergrößern' + (g.caption ? ': ' + g.caption : ''));
+      const img = document.createElement('img'); img.src = g.url; img.alt = g.caption || ''; img.loading = 'lazy';
+      open.append(img); open.addEventListener('click', () => openLb(i, false)); fig.append(open);
+    }
+    const meta = mk('div', 'gal-meta');
+    meta.append(mk('figcaption', 'gal-caption', g.caption || ''));
+    const like = mk('button', 'like'); like.type = 'button';
+    const paint = () => { const on = !!MY[g.url]; like.textContent = '♥ ' + ((g.likes || 0) + (on ? 1 : 0)); like.setAttribute('aria-pressed', on ? 'true' : 'false'); like.setAttribute('aria-label', on ? 'Gefällt mir zurücknehmen' : 'Gefällt mir'); };
+    paint();
+    like.addEventListener('click', () => { MY[g.url] = !MY[g.url]; saveLikes(); paint(); });
+    meta.append(like); fig.append(meta); grid.append(fig);
+  });
+  wrap.append(bar, grid);
+}
+
+function renderChips() {
+  const el = $('chips');
+  if (!cats.length) return;
+  el.hidden = false; el.replaceChildren();
+  [{ id: '', name: 'Alle' }, ...cats].forEach(c => {
+    const b = mk('button', 'chip', c.name); b.type = 'button';
+    b.setAttribute('aria-pressed', c.id === active ? 'true' : 'false');
+    b.addEventListener('click', () => { active = c.id; renderChips(); render(); });
+    el.append(b);
+  });
 }
 
 try {
-  const slots = document.querySelectorAll('[data-img-slot]');
-  if (slots.length) {
-    const imgSnap = await getDocs(collection(db, 'page_images'));
-    const map = {};
-    imgSnap.docs.forEach(d => { map[d.id] = d.data(); });
-    slots.forEach(el => {
-      const data = map[el.dataset.imgSlot];
-      if (data && data.url) {
-        el.classList.remove('empty');
-        el.innerHTML = '<img src="' + data.url + '" alt="' + (data.alt || '') + '" loading="lazy"/>';
-      }
+  const [gs, cs] = await Promise.all([getDocs(collection(db, 'gallery')), getDocs(collection(db, 'gallery_categories'))]);
+  all = gs.docs.map(d => ({ id: d.id, ...d.data() })).filter(g => safe(g.url))
+    .sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
+  cats = cs.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.name);
+  const q = new URLSearchParams(location.search).get('kategorie');
+  if (q && cats.some(c => c.id === q)) active = q;
+  renderChips(); render();
+} catch (e) { $('galWrap').innerHTML = '<p class="empty">Die Galerie konnte nicht geladen werden. Lade die Seite neu.</p>'; }
+
+/* Lightbox + Diashow */
+const lb = $('lb'); let idx = 0, timer = null, lastFocus = null;
+function stage() {
+  const g = shown[idx], st = $('lbStage'); st.replaceChildren();
+  if (isVideo(g)) { const v = document.createElement('video'); v.src = g.url; v.controls = true; v.autoplay = true; v.muted = true; v.loop = true; v.playsInline = true; st.append(v); }
+  else { const im = document.createElement('img'); im.src = g.url; im.alt = g.caption || ''; st.append(im); }
+  $('lbCap').textContent = g.caption || '';
+  $('lbCount').textContent = (idx + 1) + ' / ' + shown.length;
+}
+function step(d) { idx = (idx + d + shown.length) % shown.length; stage(); }
+function setPlay(on) {
+  clearInterval(timer); timer = null;
+  if (on) timer = setInterval(() => step(1), 4000);
+  $('lbPlay').textContent = on ? '⏸' : '▶';
+  $('lbPlay').setAttribute('aria-label', on ? 'Diashow pausieren' : 'Diashow starten');
+}
+function openLb(i, autoplay) { lastFocus = document.activeElement; idx = i; stage(); lb.classList.add('open'); document.body.style.overflow = 'hidden'; setPlay(autoplay); $('lbClose').focus(); }
+function closeLb() { setPlay(false); lb.classList.remove('open'); document.body.style.overflow = ''; $('lbStage').replaceChildren(); if (lastFocus) lastFocus.focus(); }
+$('lbClose').addEventListener('click', closeLb);
+$('lbPrev').addEventListener('click', () => step(-1));
+$('lbNext').addEventListener('click', () => step(1));
+$('lbPlay').addEventListener('click', () => setPlay(!timer));
+lb.addEventListener('click', e => { if (e.target === lb || e.target === $('lbStage')) closeLb(); });
+document.addEventListener('keydown', e => {
+  if (!lb.classList.contains('open')) return;
+  if (e.key === 'Escape') closeLb(); else if (e.key === 'ArrowLeft') step(-1); else if (e.key === 'ArrowRight') step(1);
+});
+
+/* Easter Egg: Memory (3 schnelle Klicks auf die Überschrift) */
+const EM = ['🎹','🎸','🎺','🎻','🥁','🎷','🎤','🎵'];
+let first = null, lock = false, found = 0;
+function initMem() {
+  const deck = EM.concat(EM).sort(() => Math.random() - .5);
+  first = null; lock = false; found = 0; $('memFound').textContent = '0'; $('memStatus').textContent = '';
+  const g = $('memGrid'); g.replaceChildren();
+  deck.forEach((em, i) => {
+    const b = mk('button', 'mem-card'); b.type = 'button'; b.setAttribute('aria-label', 'Karte ' + (i + 1));
+    b.addEventListener('click', () => {
+      if (lock || b.textContent || b.classList.contains('found')) return;
+      b.textContent = em;
+      if (!first) { first = b; return; }
+      lock = true; const a = first; first = null;
+      setTimeout(() => {
+        if (a.textContent === b.textContent) { a.classList.add('found'); b.classList.add('found'); found++; $('memFound').textContent = found; if (found === 8) $('memStatus').textContent = '🎉 Alle Paare gefunden!'; }
+        else { a.textContent = ''; b.textContent = ''; }
+        lock = false;
+      }, 700);
     });
-  }
-} catch(e) {}
-</script>
-
-<!-- Easter Egg: Memory (Kamera-Emoji in Galerie-Titel klicken) -->
-<div class="ttt-overlay" id="memoryOverlay">
-  <div class="ttt-box" style="max-width:480px">
-    <button class="ttt-close" id="memoryClose">✕</button>
-    <div class="ttt-title">🃏 Memory!</div>
-    <div class="ttt-sub">Finde alle Paare. Gefunden: <span id="memoryFound">0</span>/8</div>
-    <div id="memoryGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:1rem 0"></div>
-    <div class="ttt-status" id="memoryStatus"></div>
-    <button class="ttt-restart" id="memoryRestart">Neu mischen</button>
-  </div>
-</div>
-<script>
-(function(){
-  var sectionLabel = document.querySelector('.section-label');
-  if(sectionLabel) sectionLabel.style.cursor='pointer';
-  if(sectionLabel) sectionLabel.addEventListener('click',function(){
-    document.getElementById('memoryOverlay').classList.add('open');
-    initMemory();
+    g.append(b);
   });
-  var EMOJIS=['🎹','🎸','🎺','🎻','🥁','🎷','🎤','🎵'];
-  var cards,flipped,matched,locked;
-  function initMemory(){
-    var pairs=EMOJIS.concat(EMOJIS);
-    pairs.sort(function(){return Math.random()-0.5;});
-    cards=pairs;flipped=[];matched=0;locked=false;
-    document.getElementById('memoryFound').textContent='0';
-    document.getElementById('memoryStatus').textContent='';
-    var grid=document.getElementById('memoryGrid');
-    grid.innerHTML=pairs.map(function(e,i){
-      return'<div class="ttt-cell" style="height:64px;font-size:1.5rem;background:var(--mid);border:1px solid var(--border)" data-idx="'+i+'" data-emoji="'+e+'"></div>';
-    }).join('');
-    grid.querySelectorAll('.ttt-cell').forEach(function(c){c.addEventListener('click',function(){flipCard(c);});});
-  }
-  function flipCard(c){
-    if(locked||c.classList.contains('filled')||flipped.includes(c))return;
-    c.textContent=c.dataset.emoji;c.classList.add('filled');
-    flipped.push(c);
-    if(flipped.length===2){
-      locked=true;
-      setTimeout(function(){
-        if(flipped[0].dataset.emoji===flipped[1].dataset.emoji){
-          flipped[0].style.background='rgba(30,174,149,0.3)';
-          flipped[1].style.background='rgba(30,174,149,0.3)';
-          matched++;document.getElementById('memoryFound').textContent=matched;
-          if(matched===8)document.getElementById('memoryStatus').textContent='🎉 Alle Paare gefunden!';
-        } else {
-          flipped[0].textContent='';flipped[0].classList.remove('filled');
-          flipped[1].textContent='';flipped[1].classList.remove('filled');
-        }
-        flipped=[];locked=false;
-      },700);
-    }
-  }
-  document.getElementById('memoryClose').addEventListener('click',function(){document.getElementById('memoryOverlay').classList.remove('open');});
-  document.getElementById('memoryRestart').addEventListener('click',initMemory);
-})();
+}
+const mo = $('memOverlay'); let n = 0, t = null;
+$('galTitle').addEventListener('click', () => { n++; clearTimeout(t); t = setTimeout(() => n = 0, 600); if (n >= 3) { n = 0; mo.classList.add('open'); initMem(); $('memClose').focus(); } });
+$('memClose').addEventListener('click', () => mo.classList.remove('open'));
+$('memRestart').addEventListener('click', initMem);
+mo.addEventListener('click', e => { if (e.target === mo) mo.classList.remove('open'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') mo.classList.remove('open'); });
 </script>
-
 <script type="module" src="https://gymwentechnik.de/gwt-theme.js"></script>
 </body>
 </html>
