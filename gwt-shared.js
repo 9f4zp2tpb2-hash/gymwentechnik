@@ -2,7 +2,7 @@
 // Baut Navigation, Menü, Footer, Cursor, Theme-Toggle, Reveal und CMS-Loader auf.
 // Seiten setzen <body data-page="seitenname"> und laden dieses Modul.
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const FB_CONFIG = {
   apiKey: "AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",
@@ -137,3 +137,24 @@ if (new URLSearchParams(location.search).get('cmsEditPreview') === '1') {
     }, true);
   });
 }
+
+/* ===== Seitenbilder (data-img-slot) ===== */
+export async function loadPageImages() {
+  const slots = document.querySelectorAll('[data-img-slot]');
+  if (!slots.length) return;
+  try {
+    const snap = await getDocs(collection(db, 'page_images'));
+    const map = {};
+    snap.docs.forEach(d => { map[d.id] = d.data(); });
+    slots.forEach(el => {
+      const d = map[el.dataset.imgSlot];
+      if (d && /^https:\/\//i.test(d.url || '')) {
+        const img = document.createElement('img');
+        img.src = d.url; img.alt = d.alt || ''; img.loading = 'lazy';
+        el.prepend(img);
+        el.classList.add('has-img');
+      }
+    });
+  } catch (e) { /* Slots bleiben ausgeblendet */ }
+}
+loadPageImages();
