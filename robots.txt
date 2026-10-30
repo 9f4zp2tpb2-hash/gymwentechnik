@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /intern.html
+Disallow: /gwtorgatool.html
+Disallow: /gwtchat.html
+Disallow: /suche.html
 
 Sitemap: https://gymwentechnik.de/sitemap.xml

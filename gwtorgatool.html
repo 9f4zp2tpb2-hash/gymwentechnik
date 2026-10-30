@@ -4,22 +4,23 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>gwtOrgatool – GymWenTechnik</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@500,600,700&f[]=general-sans@400,500,600&display=swap" rel="stylesheet" />
 <style>
   :root{
-    --bg:#f4f5f7; --panel:#ffffff; --panel-sunken:#f0f1f4; --line:#e2e4e9; --line-strong:#cfd2da;
-    --ink:#1a1c22; --ink-soft:#585d68; --ink-faint:#9498a3;
+    --bg:#F5F3EE; --panel:#ffffff; --panel-sunken:#ECE9E2; --line:#E2DED5; --line-strong:#CFCABF;
+    --ink:#0B0B0E; --ink-soft:#55555d; --ink-faint:#6f6f78;
     --accent:#1EAE95; --accent-hover:#189b84; --accent-soft:#e3f6f2;
     --accent2:#B01C75; --accent2-soft:#fbe6f1;
     --warn:#f39c12; --warn-soft:#fdf1de;
     --danger:#d64545; --danger-soft:#fbe9e9;
     --success:#21860E; --success-soft:#e6f4e3;
-    --r-sm:8px; --r-md:12px; --r-lg:16px;
+    --r-sm:10px; --r-md:14px; --r-lg:22px;
     --shadow-sm:0 1px 2px rgba(20,20,30,0.05);
     --shadow-md:0 4px 16px rgba(20,20,30,0.08);
     --shadow-lg:0 12px 40px rgba(20,20,30,0.14);
-    --sans:'Inter',-apple-system,sans-serif;
-    --display:'Space Grotesk',sans-serif;
+    --sans:'General Sans',-apple-system,sans-serif;--lime:#C4F135;
+    --display:'Clash Display',sans-serif;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
@@ -284,6 +285,20 @@
     .content{padding:18px;}
     .topbar{padding:14px 18px;}
   }
+
+  /* ===== Angleichung an das Design der öffentlichen Seite ===== */
+  .sidebar{--panel:#0B0B0E;--panel-sunken:#1b1b21;--line:rgba(245,243,238,.12);--line-strong:rgba(245,243,238,.25);--ink:#F5F3EE;--ink-soft:#b8b8bf;--ink-faint:#8a8a93;--accent-soft:rgba(196,241,53,.14);--accent-hover:#C4F135;}
+  .sidebar-head .mark,.login-logo .mark{background:linear-gradient(135deg,var(--accent),var(--lime));}
+  .btn-primary,#loginBtn,#registerBtn{background:var(--lime);color:var(--ink);}
+  .btn-primary:hover,#loginBtn:hover,#registerBtn:hover{background:#b3dd1f;}
+  .btn-primary .spinner,#loginBtn .spinner,#registerBtn .spinner{border-color:rgba(11,11,14,.3);border-top-color:var(--ink);}
+  .filter-chip.active{background:var(--ink);color:var(--bg);border-color:var(--ink);}
+  .topbar h1,.card-title,.stat-num,.login-card h1{letter-spacing:-.01em;}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+  #registerBtn{width:100%;padding:12px;border:none;border-radius:var(--r-sm);font-weight:600;font-size:14px;margin-top:6px;}
+  #registerBtn:disabled{opacity:.5;cursor:default;}
+  .login-switch{margin-top:16px;font-size:12.5px;color:var(--ink-soft);text-align:center;}
+  .login-switch button{background:none;border:none;color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;font-size:inherit;}
 </style>
 </head>
 <body>
@@ -295,8 +310,9 @@
       <span class="mark"></span>
       <span>gwtOrgatool</span>
     </div>
+    <div id="loginFormBox">
     <h1>Anmeldung</h1>
-    <p>Das neue Organisationstool der GymWenTechnik.<br>Melde dich mit deinem bestehenden Konto an.</p>
+    <p>Das Organisationstool der GymWenTechnik.<br>Melde dich mit deinem Konto an.</p>
     <div id="loginErr"></div>
     <div class="login-field">
       <label>E-Mail-Adresse</label>
@@ -307,7 +323,20 @@
       <input type="password" id="loginPassword" autocomplete="current-password" placeholder="Passwort">
     </div>
     <button id="loginBtn">Einloggen</button>
-    <div class="login-footer">Gleiches Konto wie im <a href="https://gymwentechnik.de/intern.html">bisherigen internen Bereich</a>. Neue Konten werden dort registriert.</div>
+    <p class="login-switch">Noch kein Konto? <button id="showRegisterBtn" type="button">Registrieren</button></p>
+    <div class="login-footer">Gleiches Konto wie im bisherigen internen Bereich (<code>intern.html</code> leitet jetzt hierher weiter).</div>
+
+    </div>
+    <div id="registerFormBox" style="display:none">
+      <h1>Registrieren</h1>
+      <p>Mit deiner Schulmail registrieren. Ein Admin schaltet dein Konto danach frei.</p>
+      <div id="regStatus" style="display:none"></div>
+      <div class="login-field"><label for="regUsername">Benutzername</label><input type="text" id="regUsername" autocomplete="name"></div>
+      <div class="login-field"><label for="regEmail">Schulmail</label><input type="email" id="regEmail" autocomplete="username" placeholder="vorname.nachname@gymwentechnik.de"></div>
+      <div class="login-field"><label for="regPass">Passwort (mind. 6 Zeichen)</label><input type="password" id="regPass" autocomplete="new-password"></div>
+      <button id="registerBtn" type="button">Konto erstellen</button>
+      <p class="login-switch">Schon ein Konto? <button id="showLoginBtn" type="button">Einloggen</button></p>
+    </div>
   </div>
 </div>
 
@@ -462,11 +491,50 @@ loginBtn.addEventListener('click', doLogin);
 passEl.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 emailEl.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
 
+
+/* ===== REGISTRIERUNG (Self-Service, Rolle 'pending' bis ein Admin freischaltet) ===== */
+const loginFormBox = document.getElementById('loginFormBox'), registerFormBox = document.getElementById('registerFormBox'), regStatus = document.getElementById('regStatus');
+function showReg(msg, type){
+  regStatus.textContent = msg; regStatus.className = type==='info' ? 'info' : '';
+  regStatus.style.cssText = msg ? 'display:block;font-size:12.5px;border-radius:var(--r-sm);padding:10px 12px;margin-bottom:15px;line-height:1.5;'
+    + (type==='info' ? 'color:#21860E;background:var(--success-soft)' : 'color:var(--danger);background:var(--danger-soft)') : 'display:none';
+}
+document.getElementById('showRegisterBtn').addEventListener('click', () => { loginFormBox.style.display='none'; registerFormBox.style.display='block'; showReg(''); });
+document.getElementById('showLoginBtn').addEventListener('click', () => { registerFormBox.style.display='none'; loginFormBox.style.display='block'; });
+document.getElementById('registerBtn').addEventListener('click', async function(){
+  const username = document.getElementById('regUsername').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPass').value;
+  showReg('');
+  if(!username || !email || !password){ showReg('Bitte alle Felder ausfüllen.'); return; }
+  if(!email.toLowerCase().endsWith('@gymwentechnik.de')){ showReg('Bitte deine Schulmail (@gymwentechnik.de) verwenden.'); return; }
+  if(password.length < 6){ showReg('Das Passwort muss mindestens 6 Zeichen haben.'); return; }
+  const btn = this; btn.disabled = true;
+  window.__gwtRegistering = true;
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db,'users',cred.user.uid), { username, email, role:'pending', createdAt: serverTimestamp() });
+    await signOut(auth);
+    ['regUsername','regEmail','regPass'].forEach(id => document.getElementById(id).value = '');
+    showReg('Konto erstellt. Ein Admin muss dich noch freischalten, bevor du dich einloggen kannst.', 'info');
+  }catch(err){
+    let msg = 'Registrierung fehlgeschlagen.';
+    if(err.code==='auth/email-already-in-use') msg = 'Diese E-Mail-Adresse wird bereits verwendet.';
+    else if(err.code==='auth/invalid-email') msg = 'Ungültige E-Mail-Adresse.';
+    else if(err.code==='auth/weak-password') msg = 'Das Passwort ist zu schwach.';
+    showReg(msg);
+    try{ await signOut(auth); }catch(e){}
+  }
+  window.__gwtRegistering = false;
+  btn.disabled = false;
+});
+
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await signOut(auth);
 });
 
 onAuthStateChanged(auth, async (user) => {
+  if(user && window.__gwtRegistering) return; // während der Registrierung noch kein Profil prüfen
   if(!user){
     CU = null;
     loginScreen.classList.remove('hidden');
@@ -542,7 +610,8 @@ const NAV_GROUPS = [
   { label:'Inhalte', items:[
     { id:'news', label:'News', icon:'📰', perm:'events_view' },
     { id:'galerie', label:'Galerie', icon:'🖼️', perm:'gallery_manage' },
-    { id:'materialien', label:'Materialien', icon:'📁' }
+    { id:'materialien', label:'Materialien', icon:'📁' },
+    { id:'websiteeditor', label:'Website-Editor', icon:'🖊️', perm:'gallery_manage' }
   ]},
   { label:'Verwaltung', items:[
     { id:'benutzer', label:'Benutzer', icon:'👥', perm:'users_manage' }
@@ -564,7 +633,8 @@ const VIEW_TITLES = {
   galerie:['Galerie','Fotos und Videos verwalten'],
   materialien:['Materialien','Dateien und Dokumente'],
   benutzer:['Benutzer','Mitglieder und Rollen verwalten'],
-  konto:['Mein Konto','Profil, Passwort und Einstellungen']
+  konto:['Mein Konto','Profil, Passwort und Einstellungen'],
+  websiteeditor:['Website-Editor','Texte und Inhalte der öffentlichen Seite bearbeiten']
 };
 
 function buildSidebarNav(){
@@ -2314,6 +2384,112 @@ function renderMsgThreadDetail(key){
   });
 }
 
+/* ============================================================
+   MODUL: WEBSITE-EDITOR
+   Live-Vorschau der öffentlichen Seite in einem iframe. Klick auf
+   ein Element mit data-cms-key öffnet ein Bearbeitungsfeld. Das
+   iframe muss dafür ein kleines Editor-Hilfsscript injiziert bekommen,
+   da wir die Originalseite nicht selbst verändern wollen.
+   ============================================================ */
+const WE_PAGES = [
+  ['index','Startseite'], ['ueber','Über uns'], ['veranstaltungen','Veranstaltungen'],
+  ['galerie','Galerie'], ['kontakt','Kontakt'], ['news','News'], ['suche','Suche'],
+  ['gwtchat','gwtChat'], ['impressum','Impressum'], ['datenschutz','Datenschutz']
+];
+let WE_CURRENT_PAGE = 'index';
+let WE_CONTENT_CACHE = {};
+let WE_SELECTED_KEY = null;
+
+VIEW_RENDERERS['websiteeditor'] = function(content){
+  content.innerHTML =
+    '<div class="card" style="margin-bottom:16px">'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'
+    +   '<span class="field-label" style="margin-right:4px">Seite:</span>'
+    +   WE_PAGES.map(([id,label])=>'<button class="filter-chip" data-wepage="'+id+'">'+label+'</button>').join('')
+    + '</div>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">'
+    +   '<div class="card" style="padding:0;overflow:hidden">'
+    +     '<div style="padding:10px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">'
+    +       '<span style="font-size:12px;color:var(--ink-faint)">Live-Vorschau — klicke auf einen Text zum Bearbeiten</span>'
+    +       '<button class="btn-secondary" id="weReloadBtn" style="padding:5px 12px;font-size:11px">↻ Neu laden</button>'
+    +     '</div>'
+    +     '<iframe id="weFrame" style="width:100%;height:70vh;border:none;display:block" src="https://gymwentechnik.de/'+WE_CURRENT_PAGE+'.html?cmsEditPreview=1"></iframe>'
+    +   '</div>'
+    +   '<div class="card" id="wePanel"><div class="card-title">Bearbeiten</div><div class="empty-hint">Klicke im Vorschaubereich auf einen Text, um ihn zu bearbeiten.</div></div>'
+    + '</div>';
+
+  content.querySelectorAll('[data-wepage]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.wepage===WE_CURRENT_PAGE);
+    b.addEventListener('click', ()=>{
+      WE_CURRENT_PAGE = b.dataset.wepage;
+      renderView('websiteeditor');
+    });
+  });
+  document.getElementById('weReloadBtn').addEventListener('click', ()=>{
+    const frame = document.getElementById('weFrame');
+    frame.src = frame.src;
+  });
+  loadWebsiteContent(WE_CURRENT_PAGE);
+};
+
+async function loadWebsiteContent(pageName){
+  const snap = await getDoc(doc(db,'cms_content', pageName));
+  WE_CONTENT_CACHE = snap.exists() ? snap.data() : {};
+}
+
+// Nachrichten vom iframe empfangen (Klick auf ein data-cms-key-Element)
+window.addEventListener('message', (e)=>{
+  if(!e.data || e.data.type !== 'cmsEditClick') return;
+  WE_SELECTED_KEY = e.data.key;
+  renderWeEditPanel(e.data.key, e.data.currentText);
+});
+
+function renderWeEditPanel(key, currentText){
+  const panel = document.getElementById('wePanel');
+  if(!panel) return;
+  const overrideValue = WE_CONTENT_CACHE[key] !== undefined ? WE_CONTENT_CACHE[key] : '';
+  const displayValue = overrideValue || currentText || '';
+  panel.innerHTML =
+    '<div class="card-title">Bearbeiten</div>'
+    + '<div class="field-group"><label class="field-label">Schlüssel</label><div style="font-family:monospace;font-size:11.5px;color:var(--ink-faint);background:var(--panel-sunken);padding:6px 10px;border-radius:6px">'+key+'</div></div>'
+    + '<div class="field-group"><label class="field-label">Text / HTML</label><textarea id="weEditText" rows="5">'+displayValue.replace(/</g,'&lt;')+'</textarea></div>'
+    + '<div style="display:flex;gap:8px"><button class="btn-primary" id="weSaveBtn">Speichern</button>'
+    + (overrideValue ? '<button class="btn-secondary" id="weResetBtn" style="color:var(--warn)">Zurücksetzen</button>' : '')
+    + '</div>'
+    + '<p style="font-size:11px;color:var(--ink-faint);margin-top:10px">Änderung erscheint nach dem Speichern sofort live auf der Seite (nach Neuladen der Vorschau).</p>';
+  document.getElementById('weSaveBtn').addEventListener('click', ()=>saveWeContent(key));
+  const resetBtn = document.getElementById('weResetBtn');
+  if(resetBtn) resetBtn.addEventListener('click', ()=>resetWeContent(key));
+}
+
+async function saveWeContent(key){
+  const text = document.getElementById('weEditText').value;
+  const btn = document.getElementById('weSaveBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Speichert…';
+  try{
+    await setDoc(doc(db,'cms_content', WE_CURRENT_PAGE), { [key]: text }, { merge:true });
+    WE_CONTENT_CACHE[key] = text;
+    await auditLog('Website-Inhalt geändert', 'Seite: '+WE_CURRENT_PAGE+', Key: '+key);
+    btn.textContent = '✓ Gespeichert';
+    setTimeout(()=>{
+      const frame = document.getElementById('weFrame');
+      if(frame) frame.src = frame.src;
+    }, 500);
+  }catch(err){ alert('Fehler beim Speichern: '+err.message); }
+  btn.disabled = false;
+}
+async function resetWeContent(key){
+  if(!confirm('Diesen Text auf den Standardwert zurücksetzen?')) return;
+  await updateDoc(doc(db,'cms_content', WE_CURRENT_PAGE), { [key]: null }).catch(async()=>{
+    await setDoc(doc(db,'cms_content', WE_CURRENT_PAGE), { [key]: null }, { merge:true });
+  });
+  delete WE_CONTENT_CACHE[key];
+  const frame = document.getElementById('weFrame');
+  if(frame) frame.src = frame.src;
+  document.getElementById('wePanel').innerHTML = '<div class="card-title">Bearbeiten</div><div class="empty-hint">Zurückgesetzt. Klicke erneut auf den Text, um ihn zu bearbeiten.</div>';
+}
+
 
 function renderView(viewId){
   const content = document.getElementById('content');
@@ -2323,7 +2499,7 @@ function renderView(viewId){
     '<div class="placeholder-view">'
     +'<div class="ic">🚧</div>'
     +'<h2>'+((VIEW_TITLES[viewId]||['Dieser Bereich'])[0])+' folgt bald</h2>'
-    +'<p>Dieser Teil von gwtOrgatool ist noch im Aufbau. Nutze bis dahin weiterhin den <a href="https://gymwentechnik.de/intern.html" style="color:var(--accent)">bisherigen internen Bereich</a>.</p>'
+    +'<p>Dieser Bereich ist noch nicht verfügbar.</p>'
     +'</div>';
 }
 
