@@ -1,0 +1,209 @@
+// ============================================================================
+// Firestore Security Rules für GymWenTechnik (Version mit Firebase Authentication)
+// ============================================================================
+//
+// Diese Website nutzt jetzt echtes Firebase Authentication (E-Mail + Passwort).
+// Dadurch kennt Firestore über request.auth.uid, WER genau angemeldet ist - im
+// Gegensatz zum vorherigen selbstgebauten System können diese Rules jetzt also
+// wirklich nach Rolle prüfen, nicht nur strukturell.
+//
+// Funktionsweise: Pro angemeldetem Nutzer existiert ein Profildokument unter
+// /users/{uid} mit Feldern { username, email, role }. Die Hilfsfunktion
+// myRole() liest dieses Profil nach und erlaubt rollenbasierte Prüfungen.
+//
+// In der Firebase Console einfügen unter:
+// Firestore Database -> Regeln (Rules) -> Inhalt ersetzen -> Veröffentlichen
+// ============================================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function myRole() {
+      return isSignedIn() ? myProfile().role : null;
+    }
+    function isAdmin() {
+      return isSignedIn() && myRole() == 'admin';
+    }
+    function isStaff() {
+      // admin oder verwaltendes Mitglied – deckt die meisten Verwaltungsaktionen ab
+      return isSignedIn() && (myRole() == 'admin' || myRole() == 'verwaltendes');
+    }
+    function isMember() {
+      // jede angemeldete Person mit einem gültigen Profil, unabhängig von der Rolle
+      return isSignedIn() && myProfile().role != null;
+    }
+    function isActiveMember() {
+      // angemeldet und freigeschaltet (nicht "pending" / "inactive")
+      return isSignedIn() && myRole() != null && myRole() != 'pending' && myRole() != 'inactive';
+    }
+
+    // --- USERS (Profile: Rolle, Anzeigename, Avatar, E-Mail) ---
+    // Passwörter selbst liegen NICHT mehr in Firestore, sondern sicher in Firebase Auth.
+    match /users/{userId} {
+      allow get: if true;
+      // "list" (ganze Collection lesen) nur für angemeldete Mitglieder - wird für
+      // Team-Chat-Anzeigenamen/Avatare und die Benutzerverwaltung benötigt.
+      allow list: if isMember();
+      // Admin/verwaltendes Mitglied legen Profile direkt mit Rolle an (Benutzerverwaltung).
+      // Zusätzlich: Self-Service-Registrierung – ein frisch angemeldetes Firebase-Auth-Konto
+      // darf sein EIGENES Profil anlegen, aber NUR mit role == 'pending' (keine Rechte),
+      // damit niemand sich selbst eine privilegierte Rolle zuweisen kann.
+      allow create: if isStaff()
+                    || (isSignedIn() && request.auth.uid == userId
+                        && request.resource.data.role == 'pending');
+      // Eigenes Profil darf man selbst aktualisieren (Anzeigename/Avatar), Rolle nur durch Admin
+      allow update: if (isSignedIn() && request.auth.uid == userId
+                        && request.resource.data.role == resource.data.role)
+                    || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- KONTAKTNACHRICHTEN (gwtChat / Kontaktformular) ---
+    // Bewusst weiterhin offen lesbar: Besucher ohne eigenes Konto müssen über
+    // Vorgangsnummer + Nachname auf ihren Chat zugreifen können (kein Firebase-Auth-Konto
+    // für externe Kontaktpersonen). Eine feinere Eingrenzung bräuchte eigene Tokens pro Vorgang.
+    match /contact_messages/{msgId} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasAll(['firstName','message']);
+      allow update: if true; // Status setzen / Antworten bleibt für Besucher+Team möglich
+      allow delete: if isStaff();
+    }
+
+    match /thread_meta/{threadId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // --- TEAM-CHAT (Main-Chat, Direktnachrichten, Gruppen) – nur für angemeldete Mitglieder ---
+    match /chat_conversations/{convId} {
+      allow read: if isMember();
+      allow create: if isMember();
+      allow update: if isMember();
+      allow delete: if isAdmin()
+                    || (isMember() && resource.data.createdBy == myProfile().username);
+    }
+    match /chat_messages/{msgId} {
+      allow read: if isMember();
+      allow create: if isMember() && request.resource.data.username == myProfile().username;
+      allow delete: if isAdmin()
+                    || (isMember() && resource.data.username == myProfile().username);
+      allow update: if isMember();
+    }
+
+    // --- ZUSTÄNDIGKEIT / DIENSTPLAN ---
+    match /dienstplan/{bereich} {
+      allow read: if true;
+      allow write: if isMember();
+    }
+
+    // --- TODOS ---
+    match /todos/{todoId} {
+      allow read: if isMember();
+      allow write: if isMember();
+    }
+
+    // --- EQUIPMENT-INVENTAR ---
+    match /inventory/{itemId} {
+      allow read: if isMember();
+      allow update: if isMember(); // Status (verfügbar/defekt/verwendet) darf jedes Mitglied ändern
+      allow create, delete: if isStaff();
+    }
+
+    // --- VERANSTALTUNGEN ---
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isStaff();
+
+      // Technik-Planungs-Subcollections (Rider, Stromlast, Rigging, Kabel, DMX,
+      // Grundriss, Sicherheit, Leihgeräte): Lesen für alle Mitglieder, Schreiben ebenso
+      // (Team arbeitet gemeinsam an der Planung), Löschen/Anlegen an Mitgliedschaft gebunden.
+      match /rider/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /stromkreise/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /rigging/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /kabel/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /dmx/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /grundriss/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /leihgeraete/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /feedback/{docId} { allow read: if isMember(); allow write: if isMember(); }
+      match /meta/{docId} { allow read: if isMember(); allow write: if isMember(); }
+    }
+
+    // --- NEWS ---
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // --- GALERIE ---
+    match /gallery/{imgId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+    match /gallery_categories/{catId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // --- MATERIALIEN ---
+    match /materials/{matId} {
+      allow read: if true;
+      allow write: if isMember();
+    }
+
+    // --- SEITEN-BILDERRAHMEN (Bilder-Editor) ---
+    match /page_images/{slotId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // --- SKILLS (globale Liste, Admin verwaltet) ---
+    match /skills/{skillId} {
+      allow read: if isMember();
+      allow write: if isAdmin();
+    }
+
+    // --- GLOBALE EINSTELLUNGEN (saisonale Themes, wöchentlicher Code etc.) ---
+    match /settings/{settingId} {
+      allow read: if true;         // Öffentliche Seiten brauchen Theme-Einstellungen
+      allow write: if isAdmin();
+    }
+
+    // --- CMS-INHALTE (Website-Editor: bearbeitbare Texte der öffentlichen Seite) ---
+    match /cms_content/{pageId} {
+      allow read: if true;          // Öffentliche Seiten müssen die Inhalte lesen können
+      allow write: if isStaff();    // Admin & Verwaltendes Mitglied dürfen Website-Inhalte bearbeiten
+    }
+
+    // --- AUDIT-LOG (nur Admin liest, jedes Mitglied schreibt eigene Aktionen) ---
+    match /audit_log/{logId} {
+      allow read: if isAdmin();
+      allow create: if isMember();
+      allow update, delete: if false;  // Logs sind unveränderlich
+    }
+
+    // --- PUSH-TOKEN (Geräte, die Mitteilungen erhalten; gelesen werden sie nur von der Cloud Function) ---
+    match /push_tokens/{token} {
+      allow read: if false;
+      allow create: if isActiveMember()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.keys().hasOnly(['uid', 'createdAt']);
+      allow update: if isActiveMember()
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid;
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Alles andere: explizit sperren
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

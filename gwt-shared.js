@@ -45,7 +45,7 @@ document.body.insertAdjacentHTML('afterbegin',
 document.body.insertAdjacentHTML('beforeend',
   '<footer class="gwt-footer">' +
     '<div class="footer-top">' +
-      '<div class="footer-brand">Let’s<br>talk.</div>' +
+      '<div class="footer-brand" data-cms-key="footer.brand">Let’s<br>talk.</div>' +
       '<div class="footer-links">' +
         '<div class="footer-col"><div class="footer-col-title">Seiten</div>' +
           '<a href="' + BASE + 'ueber.html">Über uns</a><a href="' + BASE + 'veranstaltungen.html">Veranstaltungen</a><a href="' + BASE + 'news.html">News</a><a href="' + BASE + 'galerie.html">Galerie</a></div>' +
@@ -110,6 +110,16 @@ export function observeReveal(scope) { (scope || document).querySelectorAll('.re
 observeReveal();
 
 /* ===== CMS ===== */
+// Sicherheitsnetz: CMS-Texte dürfen Formatierung enthalten, aber keine Skripte, Event-Handler oder javascript:-Links
+export function sanitizeHtml(html) {
+  const t = document.createElement('template'); t.innerHTML = html;
+  t.content.querySelectorAll('script,object,embed,link,meta,base,iframe,style').forEach(n => n.remove());
+  t.content.querySelectorAll('*').forEach(el => [...el.attributes].forEach(a => {
+    const nm = a.name.toLowerCase();
+    if (nm.startsWith('on') || (['href','src','action','formaction','xlink:href'].includes(nm) && /^\s*(javascript|vbscript|data:text\/html)/i.test(a.value))) el.removeAttribute(a.name);
+  }));
+  return t.innerHTML;
+}
 export async function loadCms(pageName) {
   const els = document.querySelectorAll('[data-cms-key]');
   if (!els.length) return;
@@ -119,7 +129,7 @@ export async function loadCms(pageName) {
     const data = snap.data();
     els.forEach(el => {
       const v = data[el.dataset.cmsKey];
-      if (v !== undefined && v !== null && v !== '') el.innerHTML = v;
+      if (v !== undefined && v !== null && v !== '') el.innerHTML = sanitizeHtml(String(v));
     });
   } catch (e) { /* Standardtexte bleiben stehen */ }
 }

@@ -54,6 +54,22 @@
   .mq span{font-family:var(--display);font-weight:600;font-size:1.6rem;padding:0 2.4rem;}
   @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
+  /* Nächste Veranstaltung */
+  #next-event{padding:5rem 3rem 0;}
+  .next-grid{background:var(--lime);color:var(--ink);border-radius:32px;padding:3.2rem;display:grid;grid-template-columns:1.4fr 1fr;gap:3rem;align-items:center;}
+  .next-eyebrow{font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;margin-bottom:1rem;opacity:.75;}
+  .next-title{font-family:var(--display);font-weight:700;font-size:clamp(2rem,4.6vw,3.8rem);line-height:1;margin-bottom:.8rem;overflow-wrap:anywhere;}
+  .next-date{font-weight:500;margin-bottom:.8rem;}
+  .next-desc{max-width:52ch;margin-bottom:1.6rem;overflow-wrap:anywhere;}
+  .btn-kinetic.dark{background:var(--ink);color:var(--paper);}
+  .next-count{text-align:center;border-left:1px solid rgba(11,11,14,.25);padding-left:3rem;}
+  .next-big{font-family:var(--display);font-weight:700;font-size:clamp(3.4rem,9vw,7rem);line-height:.9;}
+  .next-small{margin-top:.6rem;font-weight:500;}
+  a.ev-card{display:block;color:inherit;text-decoration:none;transition:transform .4s var(--ease);}
+  a.ev-card:hover,a.ev-card:focus-visible{transform:translateY(-4px);}
+  @media(max-width:900px){.next-grid{grid-template-columns:1fr;padding:2rem;}.next-count{border-left:0;border-top:1px solid rgba(11,11,14,.25);padding:1.6rem 0 0;text-align:left;}}
+  @media(max-width:768px){#next-event{padding:3.5rem 1.5rem 0;}}
+
   /* Sektionen */
   section.block{padding:9rem 3rem;position:relative;background:var(--bg);color:var(--fg);}
   .section-eyebrow{font-size:.85rem;letter-spacing:.2em;text-transform:uppercase;color:var(--eyebrow);margin-bottom:1.2rem;}
@@ -158,6 +174,19 @@
 </div>
 
 <main>
+<section class="block" id="next-event" hidden aria-labelledby="nextTitle">
+  <div class="next-grid reveal">
+    <div>
+      <div class="next-eyebrow">Als Nächstes</div>
+      <h2 class="next-title" id="nextTitle"></h2>
+      <p class="next-date" id="nextDate"></p>
+      <p class="next-desc" id="nextDesc"></p>
+      <a id="nextLink" class="btn-kinetic dark" href="https://gymwentechnik.de/veranstaltungen.html">Details ansehen</a>
+    </div>
+    <div class="next-count" aria-live="polite"><div class="next-big" id="nextBig"></div><div class="next-small" id="nextSmall"></div></div>
+  </div>
+</section>
+
 <section class="block" id="about">
   <div class="about-grid">
     <div class="about-text reveal">
@@ -289,6 +318,20 @@ function dateLabel(ev) {
   return d ? d.getDate() + '. ' + MON[d.getMonth()] + ' ' + d.getFullYear() : (ev.startDate || '');
 }
 
+function renderNext(list, today) {
+  const ev = list.find(e => e.dateMode !== 'soon' && parseDmy(e.startDate));
+  if (!ev) return;
+  const s = parseDmy(ev.startDate), e = ev.dateMode === 'range' ? (parseDmy(ev.endDate) || s) : s;
+  const diff = Math.round((s - today) / 86400000);
+  document.getElementById('nextTitle').textContent = ev.name || '';
+  document.getElementById('nextDate').textContent = dateLabel(ev);
+  document.getElementById('nextDesc').textContent = (ev.desc || '').slice(0, 180);
+  document.getElementById('nextLink').href = 'https://gymwentechnik.de/veranstaltung.html?id=' + encodeURIComponent(ev.id);
+  if (diff > 0) { document.getElementById('nextBig').textContent = diff; document.getElementById('nextSmall').textContent = diff === 1 ? 'Tag bis zum Start' : 'Tage bis zum Start'; }
+  else { document.getElementById('nextBig').textContent = 'Jetzt'; document.getElementById('nextSmall').textContent = s.getTime() === e.getTime() ? 'heute' : 'läuft bis ' + dateLabel({ startDate: ev.endDate, dateMode: 'single' }); }
+  document.getElementById('next-event').hidden = false;
+}
+
 /* Veranstaltungen: kommende zuerst, vergangene nicht mehr auf der Startseite */
 (async () => {
   const el = document.getElementById('eventsScroller');
@@ -303,13 +346,15 @@ function dateLabel(ev) {
         const e = ev.dateMode === 'range' ? (parseDmy(ev.endDate) || s) : s;
         return e >= today;
       })
-      .sort((a, b) => sortKey(a) - sortKey(b)).slice(0, 8);
+      .sort((a, b) => sortKey(a) - sortKey(b));
+    renderNext(items, today);
+    items.length = Math.min(items.length, 8);
     if (!items.length) { el.innerHTML = '<p class="empty-state">Aktuell keine Veranstaltungen geplant.</p>'; return; }
     el.innerHTML = items.map(ev => {
       const img = safe(ev.imageUrl);
-      return '<article class="ev-card"><div class="ev-card-img">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '')
+      return '<a class="ev-card" href="https://gymwentechnik.de/veranstaltung.html?id=' + encodeURIComponent(ev.id) + '"><div class="ev-card-img">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '')
         + (ev.category === 'buehne' ? '<div class="ev-card-badge">Bühnenbelegung</div>' : '') + '</div>'
-        + '<div class="ev-card-body"><div class="ev-card-date">' + esc(dateLabel(ev)) + '</div><h3 class="ev-card-title">' + esc(ev.name) + '</h3><div class="ev-card-desc">' + esc(ev.desc || '') + '</div></div></article>';
+        + '<div class="ev-card-body"><div class="ev-card-date">' + esc(dateLabel(ev)) + '</div><h3 class="ev-card-title">' + esc(ev.name) + '</h3><div class="ev-card-desc">' + esc(ev.desc || '') + '</div></div></a>';
     }).join('');
   } catch (e) { el.innerHTML = '<p class="empty-state">Die Veranstaltungen konnten nicht geladen werden.</p>'; }
 })();

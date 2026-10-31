@@ -50,6 +50,8 @@
   .ev-name{font:600 1.4rem/1.15 var(--display);overflow-wrap:anywhere;}
   .ev-desc{color:var(--muted);font-size:.95rem;overflow-wrap:anywhere;}
   .tags{display:flex;flex-wrap:wrap;gap:.4rem;}
+  .ev-name a{text-decoration:none;}
+  .ev-name a:hover{text-decoration:underline;text-underline-offset:4px;}
   .ev-link{margin-top:auto;padding-top:.6rem;font-size:.92rem;text-decoration:underline;text-underline-offset:3px;}
   .reaction-box{height:120px;border:1px solid var(--line);border-radius:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin:1rem 0;color:var(--fg);background:var(--bg);width:100%;font:500 1rem var(--sans);}
   @media(max-width:640px){
@@ -147,7 +149,7 @@ function card(ev, st) {
   return '<article class="ev">' + (img ? '<img src="' + esc(img) + '" alt="" loading="lazy">' : '')
     + '<div class="ev-body"><div class="badges"><span class="badge ' + st + '">' + STATUS[st] + '</span>'
     + (ev.category === 'buehne' ? '<span class="badge buehne">Bühnenbelegung</span>' : '') + '</div>'
-    + '<div class="ev-date">' + esc(dateLabel(ev)) + '</div><h3 class="ev-name">' + esc(ev.name) + '</h3>'
+    + '<div class="ev-date">' + esc(dateLabel(ev)) + '</div><h3 class="ev-name"><a href="https://gymwentechnik.de/veranstaltung.html?id=' + encodeURIComponent(ev.id) + '">' + esc(ev.name) + '</a></h3>'
     + '<div class="ev-desc">' + esc(ev.desc || '') + '</div>'
     + ((ev.tags || []).length ? '<div class="tags">' + ev.tags.map(t => '<span class="tag">' + esc(t) + '</span>').join('') + '</div>' : '')
     + (cat ? '<a class="ev-link" href="https://gymwentechnik.de/galerie.html?kategorie=' + encodeURIComponent(cat) + '">Fotos zu dieser Veranstaltung</a>' : '')

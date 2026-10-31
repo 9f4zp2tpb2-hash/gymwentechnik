@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script src="https://gymwentechnik.de/gwt-global.js"></script>
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+<link href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&f[]=general-sans@300,400,500,600,700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://gymwentechnik.de/gwt-shared.css">
+<title>Veranstaltung – GymWenTechnik</title>
+<meta name="description" content="Veranstaltung der GymWenTechnik am Gymnasium Wendelstein." />
+<style>
+  .ev-grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:4rem;align-items:start;}
+  .facts{display:grid;grid-template-columns:auto 1fr;gap:.6rem 2rem;margin-bottom:2rem;border-top:1px solid var(--line);padding-top:1.4rem;}
+  .facts dt{color:var(--muted);font-size:.9rem;}
+  .facts dd{font-weight:500;}
+  .badge{border-radius:100px;padding:.1rem .8rem;font-size:.8rem;font-weight:500;border:1px solid var(--fg);display:inline-block;}
+  .badge.upcoming{background:var(--lime);color:var(--ink);border-color:var(--lime);}
+  .badge.running{background:var(--turq);color:var(--ink);border-color:var(--turq);}
+  .badge.buehne{background:var(--magenta);color:#fff;border-color:var(--magenta);}
+  .ev-text{font-size:1.15rem;line-height:1.75;max-width:60ch;white-space:pre-line;overflow-wrap:anywhere;margin-bottom:1.6rem;}
+  .tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:2rem;}
+  .actions{display:flex;flex-wrap:wrap;gap:.8rem;}
+  .btn.ghost{background:none;border:1px solid var(--fg);color:var(--fg);}
+  .hero-img{aspect-ratio:4/5;border-radius:28px;overflow:hidden;background:linear-gradient(145deg,var(--turq),var(--violet));}
+  .hero-img img{width:100%;height:100%;object-fit:cover;}
+  .photos{columns:4 200px;column-gap:.8rem;}
+  .photos a{display:block;margin-bottom:.8rem;break-inside:avoid;}
+  .photos img{width:100%;border-radius:14px;}
+  .more-link{display:inline-block;margin-top:1.4rem;text-decoration:underline;text-underline-offset:3px;}
+  .nf{padding:4rem 0;}
+  .nf h2{font:700 clamp(2rem,5vw,3.4rem)/1 var(--display);margin-bottom:1rem;}
+  @media(max-width:900px){.ev-grid2{grid-template-columns:1fr;gap:2.5rem;}.hero-img{aspect-ratio:16/10;}}
+</style>
+</head>
+<body data-page="veranstaltungen">
+<header class="page-hero">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="crumb"><a href="https://gymwentechnik.de">Startseite</a> / <a href="https://gymwentechnik.de/veranstaltungen.html">Veranstaltungen</a> / <span id="crumbName">…</span></div>
+  <h1><span id="evName">Lade…</span></h1>
+  <p class="lead" id="evLead"></p>
+</header>
+
+<main>
+  <section class="band" id="evBody"><div class="inner"><p class="empty-state">Lade…</p></div></section>
+  <section class="band" id="photoBand" hidden style="padding-top:0"><div class="inner">
+    <h2 class="sec-title">Fotos</h2>
+    <div class="photos" id="photos"></div>
+    <a class="more-link" id="photoMore" href="https://gymwentechnik.de/galerie.html">Alle Fotos in der Galerie</a>
+  </div></section>
+</main>
+
+<script type="module" src="https://gymwentechnik.de/gwt-shared.js"></script>
+<script type="module">
+import { db, esc } from "https://gymwentechnik.de/gwt-shared.js";
+import { doc, getDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const SITE = 'https://gymwentechnik.de';
+const MONATE = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const STATUS = { upcoming: 'Anstehend', running: 'Läuft', done: 'Abgeschlossen' };
+const safe = u => /^https:\/\//i.test(u || '') ? u : '';
+const $ = id => document.getElementById(id);
+
+function parseDmy(s) { const m = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec((s || '').trim()); if (!m) return null; const d = new Date(+m[3], +m[2] - 1, +m[1]); d.setHours(0,0,0,0); return d; }
+const fmtLong = d => d.getDate() + '. ' + MONATE[d.getMonth()] + ' ' + d.getFullYear();
+function range(ev) { const s = parseDmy(ev.startDate); if (!s || ev.dateMode === 'soon') return null; return [s, ev.dateMode === 'range' ? (parseDmy(ev.endDate) || s) : s]; }
+function dateLabel(ev) { if (ev.dateMode === 'soon') return 'Bald'; const r = range(ev); if (!r) return ev.startDate || ''; return r[0].getTime() === r[1].getTime() ? fmtLong(r[0]) : fmtLong(r[0]) + ' – ' + fmtLong(r[1]); }
+function status(ev) {
+  const r = range(ev); if (!r) return 'upcoming';
+  const t = new Date(); t.setHours(0,0,0,0);
+  return t < r[0] ? 'upcoming' : t > r[1] ? 'done' : 'running';
+}
+const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+function notFound(msg) {
+  document.title = 'Veranstaltung nicht gefunden – GymWenTechnik';
+  $('evName').textContent = 'Nicht gefunden'; $('crumbName').textContent = '–';
+  $('evBody').innerHTML = '<div class="inner nf"><h2>Diese Veranstaltung gibt es nicht (mehr).</h2><p style="margin-bottom:1.6rem">' + esc(msg) + '</p><a class="btn" href="https://gymwentechnik.de/veranstaltungen.html">Alle Veranstaltungen</a></div>';
+}
+
+const id = new URLSearchParams(location.search).get('id');
+if (!id) notFound('Der Link ist unvollständig.');
+else try {
+  const snap = await getDoc(doc(db, 'events', id));
+  if (!snap.exists() || snap.data().category === 'probe') { notFound('Vielleicht wurde sie gelöscht oder der Link ist veraltet.'); throw 'stop'; }
+  const ev = { id, ...snap.data() }, st = status(ev), img = safe(ev.imageUrl), r = range(ev);
+  const label = dateLabel(ev), url = SITE + '/veranstaltung.html?id=' + encodeURIComponent(id);
+
+  document.title = ev.name + ' – GymWenTechnik';
+  document.querySelector('meta[name="description"]').content = (label + '. ' + (ev.desc || '')).slice(0, 160);
+  const canon = document.createElement('link'); canon.rel = 'canonical'; canon.href = url; document.head.append(canon);
+  $('evName').textContent = ev.name || 'Veranstaltung'; $('crumbName').textContent = ev.name || ''; $('evLead').textContent = label;
+
+  const tags = (ev.tags || []).map(t => '<span class="tag">' + esc(t) + '</span>').join('');
+  $('evBody').innerHTML = '<div class="inner ev-grid2"><div>'
+    + '<dl class="facts"><dt>Datum</dt><dd>' + esc(label) + '</dd><dt>Status</dt><dd><span class="badge ' + st + '">' + STATUS[st] + '</span></dd>'
+    + '<dt>Art</dt><dd>' + (ev.category === 'buehne' ? '<span class="badge buehne">Bühnenbelegung</span>' : 'Veranstaltung') + '</dd>'
+    + '<dt>Ort</dt><dd>Gymnasium Wendelstein</dd></dl>'
+    + (ev.desc ? '<p class="ev-text">' + esc(ev.desc) + '</p>' : '')
+    + (tags ? '<div class="tags">' + tags + '</div>' : '')
+    + '<div class="actions">' + (r ? '<button type="button" class="btn" id="icsBtn">Zum Kalender hinzufügen</button>' : '')
+    + '<button type="button" class="btn ghost" id="shareBtn">Link teilen</button>'
+    + '<a class="btn ghost" href="https://gymwentechnik.de/veranstaltungen.html">Alle Veranstaltungen</a></div>'
+    + '<p id="shareMsg" aria-live="polite" style="margin-top:.8rem;font-size:.9rem;color:var(--muted)"></p>'
+    + '</div>' + (img ? '<div class="hero-img"><img src="' + esc(img) + '" alt=""></div>' : '') + '</div>';
+
+  /* Einzelner Termin als .ics */
+  const icsBtn = $('icsBtn');
+  if (icsBtn) icsBtn.addEventListener('click', () => {
+    const p = n => String(n).padStart(2, '0'), day = d => d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate());
+    const e = (s) => String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+    const end = new Date(r[1]); end.setDate(end.getDate() + 1);
+    const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//GymWenTechnik//Veranstaltungen//DE', 'BEGIN:VEVENT', 'UID:' + id + '@gymwentechnik.de',
+      'DTSTAMP:' + new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, ''), 'DTSTART;VALUE=DATE:' + day(r[0]), 'DTEND;VALUE=DATE:' + day(end),
+      'SUMMARY:' + e((ev.category === 'buehne' ? '[Bühne] ' : '') + ev.name), 'DESCRIPTION:' + e((ev.desc ? ev.desc + '\n\n' : '') + url),
+      'LOCATION:' + e('Gymnasium Wendelstein, In der Gibitzen 29, 90530 Wendelstein'), 'URL:' + url, 'END:VEVENT', 'END:VCALENDAR'];
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([L.join('\r\n')], { type: 'text/calendar;charset=utf-8' }));
+    a.download = 'veranstaltung.ics'; document.body.append(a); a.click(); a.remove();
+  });
+  $('shareBtn').addEventListener('click', async () => {
+    try { if (navigator.share) await navigator.share({ title: ev.name, url }); else { await navigator.clipboard.writeText(url); $('shareMsg').textContent = 'Link kopiert.'; } }
+    catch (e) { if (e && e.name !== 'AbortError') $('shareMsg').textContent = 'Kopiere den Link aus der Adresszeile.'; }
+  });
+
+  /* Strukturierte Daten für Suchmaschinen */
+  if (r) {
+    const ld = { '@context': 'https://schema.org', '@type': 'Event', name: ev.name, description: ev.desc || undefined, startDate: iso(r[0]), endDate: iso(r[1]),
+      eventStatus: 'https://schema.org/EventScheduled', eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode', url,
+      image: img ? [img] : undefined,
+      location: { '@type': 'Place', name: 'Gymnasium Wendelstein', address: { '@type': 'PostalAddress', streetAddress: 'In der Gibitzen 29', postalCode: '90530', addressLocality: 'Wendelstein', addressCountry: 'DE' } },
+      organizer: { '@type': 'Organization', name: 'GymWenTechnik', url: SITE } };
+    const sc = document.createElement('script'); sc.type = 'application/ld+json'; sc.textContent = JSON.stringify(ld); document.head.append(sc);
+  }
+
+  /* Fotos aus der verknüpften Galerie-Kategorie */
+  const cs = await getDocs(query(collection(db, 'gallery_categories'), where('eventId', '==', id)));
+  if (!cs.empty) {
+    const catId = cs.docs[0].id;
+    const gs = await getDocs(query(collection(db, 'gallery'), where('categoryId', '==', catId)));
+    const pics = gs.docs.map(d => d.data()).filter(g => !g.isVideo && safe(g.url)).slice(0, 12);
+    if (pics.length) {
+      $('photos').innerHTML = pics.map(g => '<a href="https://gymwentechnik.de/galerie.html?kategorie=' + encodeURIComponent(catId) + '"><img src="' + esc(g.url) + '" alt="' + esc(g.caption || 'Foto') + '" loading="lazy"></a>').join('');
+      $('photoMore').href = 'https://gymwentechnik.de/galerie.html?kategorie=' + encodeURIComponent(catId);
+      $('photoBand').hidden = false;
+    }
+  }
+} catch (e) {
+  if (e !== 'stop') notFound('Die Veranstaltung konnte nicht geladen werden. Lade die Seite neu.');
+}
+</script>
+<script type="module" src="https://gymwentechnik.de/gwt-theme.js"></script>
+</body>
+</html>
