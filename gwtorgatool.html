@@ -634,6 +634,7 @@ const NAV_GROUPS = [
   { label:'Organisation', items:[
     { id:'events', label:'Veranstaltungen', icon:'📅', perm:'events_view' },
     { id:'todos', label:'ToDos', icon:'✅' },
+    { id:'planer', label:'Bühnenplaner', icon:'🎛️' },
     { id:'inventar', label:'Inventar', icon:'📦' },
     { id:'zustaendigkeit', label:'Zuständigkeit', icon:'🛠️', perm:'dienstplan' }
   ]},
@@ -657,6 +658,7 @@ const VIEW_TITLES = {
   nachrichten:['Nachrichten','Kontaktanfragen von der Website'],
   events:['Veranstaltungen','Events, Proben und Bühnenbelegung'],
   todos:['ToDos','Gemeinsame Aufgabenliste des Teams'],
+  planer:['Bühnenplaner','Bühnen, Technik und Kabel maßstabsgetreu planen'],
   inventar:['Inventar','Equipment-Status auf einen Blick'],
   zustaendigkeit:['Zuständigkeit','Wer ist für welchen Bereich zuständig'],
   news:['News','Neuigkeiten für die öffentliche Seite'],
@@ -2481,6 +2483,14 @@ const WE_PAGES = [
 let WE_CURRENT_PAGE = 'index';
 let WE_CONTENT_CACHE = {};
 let WE_SELECTED_KEY = null;
+
+/* ===== BÜHNENPLANER (eigenständige Datei, läuft offline; Projekte liegen im Browser dieses Geräts) ===== */
+VIEW_RENDERERS['planer'] = function(content){
+  content.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:12.5px;color:var(--ink-soft)">'
+    + '<span>Projekte werden lokal in diesem Browser gespeichert. Für Weitergabe: „Speichern“ (.json) und „Öffnen“.</span>'
+    + '<a href="https://gymwentechnik.de/buehnenplaner.html" target="_blank" rel="noopener" style="color:var(--ink);font-weight:600">In eigenem Tab öffnen</a></div>'
+    + '<iframe src="https://gymwentechnik.de/buehnenplaner.html" title="Bühnenplaner" style="width:100%;height:calc(100vh - 150px);min-height:520px;border:1px solid var(--line);border-radius:var(--r-md);background:#15161b"></iframe>';
+};
 
 VIEW_RENDERERS['websiteeditor'] = function(content){
   content.innerHTML =

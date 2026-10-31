@@ -1,7 +1,7 @@
 # Einrichtung der GymWenTechnik-Website
 
 ## 1. Dateien hochladen (alle ins Hauptverzeichnis, außer worker/ und DEPLOY.md)
-Seiten: index, ueber, veranstaltungen, veranstaltung (neu), galerie, kontakt, news, suche, gwtchat, impressum, datenschutz, intern, gwtorgatool
+Seiten: buehnenplaner (neu, eigenständig/offline), index, ueber, veranstaltungen, veranstaltung (neu), galerie, kontakt, news, suche, gwtchat, impressum, datenschutz, intern, gwtorgatool
 Gemeinsam: gwt-shared.css, gwt-shared.js, gwt-global.js, gwt-config.js (neu), firebase-messaging-sw.js (neu), manifest.webmanifest (neu), icon-192.png, icon-512.png (neu)
 Außerdem: robots.txt, sitemap.xml
 `gwt-theme.js` bleibt unverändert, so wie du ihn schon hast.
