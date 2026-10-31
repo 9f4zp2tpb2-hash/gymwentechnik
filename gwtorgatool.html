@@ -396,8 +396,9 @@ import { getMessaging, getToken, deleteToken, isSupported } from 'https://www.gs
    esc() maskiert Nutzerdaten beim Einsetzen in HTML. Der Sanitizer ist ein Sicherheitsnetz für
    alle innerHTML-Zuweisungen: er entfernt Skripte, Inline-Event-Handler und javascript:-URLs. */
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+const _ihDesc = Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML'); // Original-Setter (ohne Sanitizer)
 function sanitizeHtml(html){
-  const t = document.createElement('template'); t.innerHTML = html;
+  const t = document.createElement('template'); _ihDesc.set.call(t, html);
   t.content.querySelectorAll('script,object,embed,link,meta,base').forEach(n=>n.remove());
   t.content.querySelectorAll('iframe').forEach(n=>{ if(!/^https:\/\/gymwentechnik\.de\//.test(n.getAttribute('src')||'')) n.remove(); });
   t.content.querySelectorAll('*').forEach(el=>{
@@ -409,8 +410,7 @@ function sanitizeHtml(html){
   return t.innerHTML;
 }
 (function(){
-  const d = Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
-  Object.defineProperty(Element.prototype,'innerHTML',{ get:d.get, set(v){ d.set.call(this, typeof v==='string' ? sanitizeHtml(v) : v); }, configurable:true });
+  Object.defineProperty(Element.prototype,'innerHTML',{ get:_ihDesc.get, set(v){ _ihDesc.set.call(this, typeof v==='string' ? sanitizeHtml(v) : v); }, configurable:true });
   const iah = Element.prototype.insertAdjacentHTML;
   Element.prototype.insertAdjacentHTML = function(pos,h){ return iah.call(this,pos,typeof h==='string'?sanitizeHtml(h):h); };
 })();
