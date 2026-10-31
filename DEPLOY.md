@@ -9,7 +9,8 @@ Außerdem: robots.txt, sitemap.xml
 
 ## 2. Firestore-Regeln
 `firestore.rules` in der Firebase Console (Firestore → Regeln) einfügen und veröffentlichen.
-Neu: Collection `push_tokens` (Geräte für Push).
+Neu: Collection `push_tokens` (Geräte für Push) sowie `planner_projects` und `planner_library` (Bühnenplaner).
+Ohne diese Regeln zeigt der Bühnenplaner „Verbindung fehlgeschlagen oder keine Berechtigung“.
 
 ## 3. Push-Mitteilungen (optional, kostenlos, ohne Blaze-Tarif)
 Ohne diesen Schritt läuft die gesamte Website normal. Nur die Push-Karte im Tool zeigt dann „noch nicht eingerichtet“.
@@ -48,10 +49,18 @@ iPhone/iPad: erst über Safari „Teilen → Zum Home-Bildschirm“ installieren
   (z. B. 150 Dokumente × 96 Läufe ≈ 14.000 pro Tag). Bei sehr vielen Einträgen das Intervall auf `*/30` stellen.
 - Firebase Cloud Messaging ist kostenlos.
 
+## 3e. Bühnenplaner
+- Pläne und die gemeinsame Bibliothek (Objektvorlagen, Kabeltypen) liegen in Firestore und gelten für alle. Es gibt keine Beispieldaten, die Bibliothek ist anfangs leer.
+- Bearbeiten dürfen nur Admins und verwaltende Mitglieder (durch die Firestore-Regeln erzwungen). Alle anderen freigeschalteten Mitglieder sehen die Pläne nur an (Zoomen, Verschieben, Übersicht, Exporte).
+- Der Planer nutzt die Anmeldung des Tools. Wer nicht angemeldet ist, sieht einen Hinweis mit Link zum Tool.
+- Gleichzeitiges Bearbeiten desselben Plans: der zuletzt gespeicherte Stand gewinnt. Ansichten anderer Mitglieder aktualisieren sich live.
+- Der Planer braucht jetzt eine Internetverbindung (nicht mehr offline nutzbar).
+
 ## 4. Testen
 - Alle Seiten aufrufen (Menü, Dark/Light-Umschalter, Links).
 - Kontaktformular absenden → Vorgangsnummer (V + 6 Ziffern) → im gwtChat anmelden.
 - Im Tool einloggen, Registrierung testen (Konto bleibt „pending“, bis ein Admin es freischaltet).
+- Bühnenplaner: als Admin Vorlage + Kabeltyp anlegen, Objekt platzieren; als normales Mitglied dasselbe prüfen (nur Ansicht).
 - Website-Editor: Seite wählen, Text anklicken, ändern, speichern.
 - Im Tool eine Veranstaltung anlegen → Karte erscheint auf Startseite und unter Veranstaltungen; `veranstaltung.html?id=…` öffnen.
 
