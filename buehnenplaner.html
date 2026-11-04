@@ -22,6 +22,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px
 .bad{color:var(--bad)}.ok{color:var(--li)}.ports td input,.ports td select{width:100%;padding:2px 3px}
 #toast{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:#222;border:1px solid var(--ln);padding:8px 14px;border-radius:8px;display:none;z-index:5;max-width:80%}
 #printArea{display:none}body.ro .ed{display:none}
+#cabBar{position:absolute;left:10px;top:10px;z-index:4;background:var(--p);border:1px solid var(--ln);border-radius:8px;padding:6px 10px;display:none;gap:8px;align-items:center;flex-wrap:wrap;max-width:90%}
 #gate{position:absolute;inset:0;background:rgba(21,22,27,.95);z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px}
 @media print{body>*{display:none!important}#printArea{display:block!important}#printArea svg{max-width:100%;height:auto}}
 @media(max-width:900px){body{grid-template-columns:200px 1fr 230px}}
@@ -43,7 +44,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px
  <input type="file" id="file" accept=".json,application/json" hidden>
 </header>
 <aside id="left"></aside>
-<main id="stage"><svg id="cv"></svg><div id="toast"></div><div id="gate"><div>Verbinde mit dem Team-Server…</div></div></main>
+<main id="stage"><svg id="cv"></svg><div id="cabBar"></div><div id="toast"></div><div id="gate"><div>Verbinde mit dem Team-Server…</div></div></main>
 <aside id="right"></aside>
 <footer id="status"></footer>
 <div id="printArea"></div>
@@ -53,13 +54,20 @@ table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px
  Alle Maße in Metern. Ein Kabel ist ein eigenes Objekt mit Typ, verfügbarer Länge, Reserve und Zwischenpunkten. */
 const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const PT=['Strom','DMX','XLR','LAN','Lautsprecher','Steuer'];
-const PC={Strom:'#e74c3c',DMX:'#f1c40f',XLR:'#2ecc71',LAN:'#3498db',Lautsprecher:'#9b59b6',Steuer:'#e67e22'};
+const PAL=['#e74c3c','#f1c40f','#2ecc71','#3498db','#9b59b6','#e67e22','#1abc9c','#ecf0f1'];
+/* Anschlussarten ("Enden") sind frei anlegbar und gelten für Geräte-Anschlüsse UND Kabelenden. Ein Kabel hat Ende A und Ende B (dürfen verschieden sein). */
+const endOf=t=>((S&&S.ends)||[]).find(e=>e.id===t)||((S&&S.ends)||[]).find(e=>e.name===t)||null;
+const endName=t=>{const e=endOf(t);return e?e.name:(t||'?')};
+const endCol=t=>{const e=endOf(t);return e?e.color:'#999'};
+const endOpts=v=>(!v||endOf(v)?'':'<option selected value="'+esc(v)+'">'+esc(v)+' (unbekannt)</option>')+((S&&S.ends)||[]).map(e=>'<option value="'+e.id+'"'+(e.id===v?' selected':'')+'>'+esc(e.name)+'</option>').join('');
+const endSel=(s,l,k,v,id)=>'<div class="row"><label>'+l+'</label><select data-s="'+s+'" data-k="'+k+'" data-id="'+id+'">'+endOpts(v)+'</select></div>';
+const endUse=id=>S.objs.reduce((n,o)=>n+o.ports.filter(p=>p.t===id).length,0)+S.tpls.reduce((n,t)=>n+t.ports.filter(p=>p.t===id).length,0)+S.ctypes.filter(c=>c.a===id||c.b===id).length+S.cables.filter(c=>c.ea===id||c.eb===id).length;
+function armCt(id){curCt=id;const c=S.ctypes.find(k=>k.id===id);curEa=c?c.a:null;curEb=c?c.b:null}
 /* Gemeinsame Bibliothek (Objektvorlagen + Kabeltypen): liegt zentral in Firestore und gilt für ALLE Pläne. Es gibt keine Beispieldaten. */
-const LIB={tpls:[],ctypes:[]};
+const LIB={tpls:[],ctypes:[],ends:[]};
 const CLOUD={};let RO=true,SYNC='',PROJ=[],saveTimer=null;
-const newProj=name=>({v:1,id:null,name,N:50,room:{w:12,h:8},grid:.5,snap:true,ortho:true,limit:3680,objs:[],cables:[],tpls:LIB.tpls,ctypes:LIB.ctypes});
-let S,V={z:1,px:30,py:30},sel=new Set(),selC=null,tool='sel',draft=null,mouse={x:0,y:0},D=null,hist=[],fut=[],cur='',clip=[],rtab='prop',ltab='obj',q='',showGrid=true,curCt=null;
+const newProj=name=>({v:1,id:null,name,N:50,room:{w:12,h:8},grid:.5,snap:true,ortho:true,limit:3680,objs:[],cables:[],tpls:LIB.tpls,ctypes:LIB.ctypes,ends:LIB.ends});
+let S,V={z:1,px:30,py:30},sel=new Set(),selC=null,tool='sel',draft=null,mouse={x:0,y:0},D=null,hist=[],fut=[],cur='',clip=[],rtab='prop',ltab='obj',q='',showGrid=true,curCt=null,curEa=null,curEb=null;
 
 /* ================= GEOMETRIE ================= */
 const ppm=()=>3779.5275/S.N*V.z;              /* CSS-Pixel pro Meter: 1 m = 1000 mm / N auf dem Papier */
@@ -79,7 +87,7 @@ function toast(m,bad){const t=$('#toast');t.textContent=m;t.style.display='block
 const setSync=t=>{SYNC=t;status()};
 function scheduleSave(){if(RO||!CLOUD.save||!S.id)return;clearTimeout(saveTimer);setSync('Speichert…');saveTimer=setTimeout(async()=>{saveTimer=null;await CLOUD.save()},700)}
 function commit(){if(RO){renderAll();return}hist.push(cur);if(hist.length>100)hist.shift();cur=JSON.stringify(S);fut=[];scheduleSave();renderAll()}
-function adopt(){LIB.tpls=S.tpls;LIB.ctypes=S.ctypes}
+function adopt(){LIB.tpls=S.tpls;LIB.ctypes=S.ctypes;LIB.ends=S.ends}
 function load(p,keep){S=p;if(!keep){hist=[];fut=[];sel=new Set();selC=null;curCt=null;draft=null}cur=JSON.stringify(S);renderAll();if(!keep)fit()}
 function undo(){if(RO||!hist.length)return;fut.push(cur);cur=hist.pop();S=JSON.parse(cur);adopt();sel=new Set();selC=null;scheduleSave();renderAll()}
 function redo(){if(RO||!fut.length)return;hist.push(cur);cur=fut.pop();S=JSON.parse(cur);adopt();scheduleSave();renderAll()}
@@ -95,17 +103,27 @@ function dupObjs(ids,off){const ns=new Set();ids.forEach(id=>{const o=objById(id
 const center=()=>{const r=$('#cv').getBoundingClientRect();return{x:(r.width/2-V.px)/ppm(),y:(r.height/2-V.py)/ppm()}};
 
 /* ================= KABEL ================= */
-function addCable(ct,from,to,pts){const nr='K'+(S.cables.reduce((m,c)=>Math.max(m,parseInt(c.nr.slice(1))||0),0)+1);
- const c={id:uid(),nr,name:ct.name,ct:ct.id,t:ct.t,len:ct.len,color:ct.color,res:0,from,to,pts:pts||[]};S.cables.push(c);selC=c.id;sel=new Set();commit();return c}
+function addCable(ct,ea,eb,from,to,pts){const nr='K'+(S.cables.reduce((m,c)=>Math.max(m,parseInt(c.nr.slice(1))||0),0)+1);
+ const c={id:uid(),nr,name:ct.name,ct:ct.id,ea,eb,len:ct.len,color:ct.color,res:0,from,to,pts:pts||[]};S.cables.push(c);selC=c.id;sel=new Set();commit();return c}
 function portAt(el){const pe=el.closest&&el.closest('[data-p]');if(!pe)return null;const o=objById(pe.dataset.o);return o?{o:o.id,p:pe.dataset.p,port:o.ports.find(p=>p.id===pe.dataset.p),obj:o}:null}
-function cableClick(e,w){const ct=S.ctypes.find(c=>c.id===curCt);if(!ct){toast('Wähle zuerst links einen Kabeltyp.',1);return}
- const pt=portAt(e.target);
- const check=a=>{if(a.port.t!==ct.t){toast('Nicht kompatibel: '+ct.name+' ('+ct.t+') passt nicht an „'+a.port.n+'“ ('+a.port.t+').',1);return false}
-  if(S.cables.some(c=>(c.from.p===a.p)||(c.to.p===a.p))){toast('Der Anschluss „'+a.port.n+'“ ist bereits belegt.',1);return false}return true};
- if(!draft){if(!pt){toast('Starte das Kabel an einem Anschluss (farbiger Punkt).',1);return}if(!check(pt))return;draft={ct,from:{o:pt.o,p:pt.p},pts:[]};return}
- if(pt){if(pt.p===draft.from.p){toast('Start und Ziel sind derselbe Anschluss.',1);return}if(!check(pt))return;
-  const c=addCable(draft.ct,draft.from,{o:pt.o,p:pt.p},draft.pts);draft=null;
-  const u=used(c);toast(u>c.len?'Achtung: verlegt '+u.toFixed(2)+' m, verfügbar nur '+c.len+' m.':'Kabel verlegt: '+u.toFixed(2)+' m von '+c.len+' m.',u>c.len);return}
+function cableClick(e,w){const ct=S.ctypes.find(c=>c.id===curCt);if(!ct){toast('Wähle zuerst links (Tab „Kabel“) einen Kabeltyp.',1);return}
+ if(!curEa||!curEb){toast('Wähle oben für Ende A und Ende B je eine Anschlussart (im Tab „Enden“ legst du neue an).',1);return}
+ const pt=portAt(e.target),busy=a=>S.cables.some(c=>c.from.p===a.p||c.to.p===a.p);
+ if(!draft){
+  if(!pt){toast('Starte das Kabel an einem Anschluss (farbiger Punkt).',1);return}
+  if(busy(pt)){toast('Der Anschluss „'+pt.port.n+'“ ist bereits belegt.',1);return}
+  const side=pt.port.t===curEa?'a':pt.port.t===curEb?'b':null;
+  if(!side){toast('Nicht kompatibel: „'+pt.port.n+'“ ('+endName(pt.port.t)+') passt weder zu Ende A ('+endName(curEa)+') noch zu Ende B ('+endName(curEb)+').',1);return}
+  draft={ct,ea:curEa,eb:curEb,side,from:{o:pt.o,p:pt.p},pts:[]};renderBar();return}
+ if(pt){
+  if(pt.p===draft.from.p){toast('Start und Ziel sind derselbe Anschluss.',1);return}
+  if(busy(pt)){toast('Der Anschluss „'+pt.port.n+'“ ist bereits belegt.',1);return}
+  const need=draft.side==='a'?draft.eb:draft.ea;
+  if(pt.port.t!==need){toast('Nicht kompatibel: Am anderen Kabelende wird „'+endName(need)+'“ gebraucht, „'+pt.port.n+'“ ist aber '+endName(pt.port.t)+'.',1);return}
+  const start=draft.from,stop={o:pt.o,p:pt.p};
+  /* Ende A liegt immer vorne im Kabel: wurde am Ende B begonnen, wird der Verlauf umgedreht */
+  const c=draft.side==='a'?addCable(draft.ct,draft.ea,draft.eb,start,stop,draft.pts):addCable(draft.ct,draft.ea,draft.eb,stop,start,draft.pts.slice().reverse());
+  draft=null;renderBar();const u=used(c);toast(u>c.len?'Achtung: verlegt '+u.toFixed(2)+' m, verfügbar nur '+c.len+' m.':'Kabel verlegt: '+u.toFixed(2)+' m von '+c.len+' m.',u>c.len);return}
  const last=draft.pts.length?draft.pts[draft.pts.length-1]:endPt(draft.from);
  draft.pts.push(S.ortho?ortho(last,{x:snapV(w.x),y:snapV(w.y)}):{x:snapV(w.x),y:snapV(w.y)})}
 
@@ -118,12 +136,13 @@ function content(pp,ui){const lw=n=>(n/pp).toFixed(4),fs=12/pp;let h='';const R=
   h+='<g data-o="'+o.id+'" transform="translate('+o.x+' '+o.y+') rotate('+(o.rot||0)+' '+o.w/2+' '+o.h/2+')"><rect width="'+o.w+'" height="'+o.h+'" fill="'+esc(o.color)+'" fill-opacity="'+(o.zone?.18:.85)+'" stroke="'+(s?'#0a84ff':'#222')+'" stroke-width="'+lw(s?3:1.2)+'"'+(o.zone?' stroke-dasharray="'+lw(6)+' '+lw(4)+'"':'')+'/>'
   +'<text x="'+(o.zone?fs*.4:o.w/2)+'" y="'+(o.zone?fs*1.3:o.h/2)+'" font-size="'+fs+'" text-anchor="'+(o.zone?'start':'middle')+'" dominant-baseline="'+(o.zone?'auto':'middle')+'" fill="#111">'+esc(o.name)+(o.lock?' 🔒':'')+'</text>'
   +'<text x="'+o.w/2+'" y="'+(o.h+fs*1.1)+'" font-size="'+fs*.8+'" text-anchor="middle" fill="#444">'+o.w+'×'+o.h+' m</text>';
-  o.ports.forEach(p=>{h+='<circle data-p="'+p.id+'" data-o="'+o.id+'" cx="'+p.x+'" cy="'+p.y+'" r="'+lw(5)+'" fill="'+(PC[p.t]||'#999')+'" stroke="#000" stroke-width="'+lw(1)+'"><title>'+esc(p.n)+' ('+esc(p.t)+')</title></circle>'+(ui?'<circle data-p="'+p.id+'" data-o="'+o.id+'" cx="'+p.x+'" cy="'+p.y+'" r="'+lw(10)+'" fill="transparent"/>':'')});
+  o.ports.forEach(p=>{h+='<circle data-p="'+p.id+'" data-o="'+o.id+'" cx="'+p.x+'" cy="'+p.y+'" r="'+lw(5)+'" fill="'+endCol(p.t)+'" stroke="#000" stroke-width="'+lw(1)+'"><title>'+esc(p.n)+' ('+esc(endName(p.t))+')</title></circle>'+(ui?'<circle data-p="'+p.id+'" data-o="'+o.id+'" cx="'+p.x+'" cy="'+p.y+'" r="'+lw(10)+'" fill="transparent"/>':'')});
   h+='</g>'};
  S.objs.filter(o=>o.zone).forEach(draw);S.objs.filter(o=>!o.zone).forEach(draw);
  S.cables.forEach(c=>{const pts=route(c);if(pts.length<2)return;const u=used(c),bad=u>c.len+1e-9,s=ui&&selC===c.id,P=pts.map(p=>p.x+','+p.y).join(' ');
   if(s)h+='<polyline points="'+P+'" fill="none" stroke="#0a84ff" stroke-opacity=".45" stroke-width="'+lw(9)+'"/>';
   h+='<polyline data-c="'+c.id+'" points="'+P+'" fill="none" stroke="'+esc(c.color)+'" stroke-width="'+lw(3)+'" stroke-linejoin="round"'+(bad?' stroke-dasharray="'+lw(8)+' '+lw(4)+'"':'')+'/>';
+  [[c.from,c.ea],[c.to,c.eb]].forEach(x=>{const q=endPt(x[0]);if(q)h+='<circle cx="'+q.x+'" cy="'+q.y+'" r="'+lw(8)+'" fill="none" stroke="'+endCol(x[1])+'" stroke-width="'+lw(2.5)+'"/>'});
   const m=pts[Math.floor(pts.length/2)],a=pts[Math.floor((pts.length-1)/2)],mx=(m.x+a.x)/2,my=(m.y+a.y)/2;
   h+='<text x="'+mx+'" y="'+(my-fs*.4)+'" font-size="'+fs*.85+'" text-anchor="middle" fill="'+(bad?'#d00':'#111')+'" stroke="#fff" stroke-width="'+lw(3)+'" paint-order="stroke">'+esc(c.nr)+' · '+u.toFixed(1)+'/'+c.len+' m</text>';
   if(s)c.pts.forEach((p,i)=>{h+='<circle data-w="'+c.id+'" data-i="'+i+'" cx="'+p.x+'" cy="'+p.y+'" r="'+lw(6)+'" fill="#fff" stroke="#0a84ff" stroke-width="'+lw(2)+'"/>'})});
@@ -139,16 +158,20 @@ function status(){const w=mouse,o=sel.size===1?objById([...sel][0]):null,c=S.cab
 function fit(){const r=$('#cv').getBoundingClientRect();V.z=Math.min((r.width-80)/(S.room.w*3779.5/S.N),(r.height-80)/(S.room.h*3779.5/S.N));V.px=(r.width-S.room.w*ppm())/2;V.py=(r.height-S.room.h*ppm())/2;render()}
 
 /* ================= SEITENLEISTEN ================= */
-function renderLeft(){let h='<div class="tabs"><button data-a="lt" data-v="obj" class="'+(ltab==='obj'?'on':'')+'">Objekte</button><button data-a="lt" data-v="cab" class="'+(ltab==='cab'?'on':'')+'">Kabel</button></div>';
+function renderLeft(){let h='<div class="tabs"><button data-a="lt" data-v="obj" class="'+(ltab==='obj'?'on':'')+'">Objekte</button><button data-a="lt" data-v="cab" class="'+(ltab==='cab'?'on':'')+'">Kabel</button><button data-a="lt" data-v="end" class="'+(ltab==='end'?'on':'')+'">Enden</button></div>';
  if(ltab==='obj'){h+='<input id="q" placeholder="Suchen…" value="'+esc(q)+'" style="width:100%;margin-bottom:6px">'+(RO?'':'<button data-a="tplNew" style="width:100%;margin-bottom:6px">＋ Neue Vorlage</button>');
   if(!S.tpls.length)h+='<p style="color:var(--mu)">'+(RO?'Noch keine Objekte in der Bibliothek.':'Noch keine Objekte. Lege mit „＋ Neue Vorlage“ das erste an (Geräte, Podeste oder Bereiche wie Bühne/FOH).')+'</p>';
   const cats=[...new Set(S.tpls.map(t=>t.cat||'Ohne Kategorie'))];cats.forEach(c=>{const l=S.tpls.filter(t=>(t.cat||'Ohne Kategorie')===c&&(!q||(t.name+c).toLowerCase().includes(q.toLowerCase())));if(!l.length)return;
    h+='<h4>'+esc(c)+'</h4>'+l.map(t=>'<div class="item"'+(RO?'':' draggable="true" data-tpl="'+t.id+'" title="Klicken zum Platzieren oder auf die Fläche ziehen"')+'><span class="sw" style="background:'+esc(t.color)+'"></span><b>'+esc(t.name)+'</b><small>'+t.w+'×'+t.h+'</small>'+(RO?'':'<button data-a="tplDup" data-id="'+t.id+'" title="Vorlage duplizieren">⧉</button><button data-a="tplDel" data-id="'+t.id+'" title="Vorlage löschen">✕</button>')+'</div>').join('')});
   if(!RO&&S.tpls.length)h+='<p style="color:var(--mu)">Vorlage ändern: Objekt platzieren, im Eigenschaftenfenster bearbeiten und „Als Vorlage speichern“.</p>'}
+ else if(ltab==='end'){h+=RO?'':'<button data-a="endNew" style="width:100%;margin-bottom:6px">＋ Neue Anschlussart</button>';
+  if(!S.ends.length)h+='<p style="color:var(--mu)">'+(RO?'Noch keine Anschlussarten.':'Noch keine Anschlussarten. Lege hier die Stecker/Buchsen an, die es in deinem Equipment gibt (z. B. XLR männlich, Schuko, CEE 16 A, RJ45). Sie gelten für Geräte-Anschlüsse und Kabelenden.')+'</p>';
+  h+=S.ends.map(e=>'<div class="item" style="cursor:default"><span class="sw" style="background:'+esc(e.color)+'"></span><b>'+esc(e.name)+'</b><small>'+endUse(e.id)+'× genutzt</small>'+(RO?'':'<button data-a="endDel" data-id="'+e.id+'" title="Anschlussart löschen">✕</button>')+'</div>').join('');
+  if(!RO&&S.ends.length)h+='<h4>Umbenennen / Farbe</h4>'+S.ends.map(e=>'<div class="row" style="grid-template-columns:1fr 44px"><input data-s="end" data-id="'+e.id+'" data-k="name" value="'+esc(e.name)+'"><input type="color" data-s="end" data-id="'+e.id+'" data-k="color" value="'+esc(e.color)+'"></div>').join('')}
  else{h+=RO?'':'<button data-a="ctNew" style="width:100%;margin-bottom:6px">＋ Neuer Kabeltyp</button>';
   if(!S.ctypes.length)h+='<p style="color:var(--mu)">'+(RO?'Noch keine Kabeltypen.':'Noch keine Kabeltypen. Lege mit „＋ Neuer Kabeltyp“ den ersten an.')+'</p>';
-  h+=S.ctypes.map(c=>'<div class="item" style="cursor:'+(RO?'default':'pointer')+';'+(curCt===c.id?'border-color:var(--li)':'')+'"'+(RO?'':' data-ct="'+c.id+'" title="Klicken, um das Kabel-Werkzeug mit diesem Typ zu starten"')+'><span class="sw" style="background:'+esc(c.color)+'"></span><b>'+esc(c.name)+'</b><small>'+c.t+' · '+c.len+' m</small></div>').join('');
-  const c=!RO&&S.ctypes.find(k=>k.id===curCt);if(c)h+='<h4>Kabeltyp bearbeiten</h4>'+fld('ct','Name','name',c.name,0,c.id)+sel_('ct','Anschluss','t',c.t,PT,c.id)+fld('ct','Länge (m)','len',c.len,1,c.id,'number','0.5')+fld('ct','Farbe','color',c.color,0,c.id,'color')+'<button data-a="ctDel" data-id="'+c.id+'">Kabeltyp löschen</button>'}
+  h+=S.ctypes.map(c=>'<div class="item" style="cursor:'+(RO?'default':'pointer')+';'+(curCt===c.id?'border-color:var(--li)':'')+'"'+(RO?'':' data-ct="'+c.id+'" title="Klicken, um das Kabel-Werkzeug mit diesem Typ zu starten"')+'><span class="sw" style="background:'+esc(c.color)+'"></span><b>'+esc(c.name)+'</b><small>'+esc(endName(c.a))+' → '+esc(endName(c.b))+' · '+c.len+' m</small></div>').join('');
+  const c=!RO&&S.ctypes.find(k=>k.id===curCt);if(c)h+='<h4>Kabeltyp bearbeiten</h4>'+fld('ct','Name','name',c.name,0,c.id)+endSel('ct','Ende A (Standard)','a',c.a,c.id)+endSel('ct','Ende B (Standard)','b',c.b,c.id)+fld('ct','Länge (m)','len',c.len,1,c.id,'number','0.5')+fld('ct','Farbe','color',c.color,0,c.id,'color')+'<button data-a="ctDel" data-id="'+c.id+'">Kabeltyp löschen</button>'}
  $('#left').innerHTML=h}
 const fld=(s,l,k,v,num,id,type,step,pid)=>'<div class="row"><label>'+l+'</label><input data-s="'+s+'" data-k="'+k+'" data-id="'+(id||'')+'" data-pid="'+(pid||'')+'" type="'+(type||(num?'number':'text'))+'" '+(num?'step="'+(step||'0.01')+'"':'')+' value="'+esc(v)+'"></div>';
 const sel_=(s,l,k,v,opts,id)=>'<div class="row"><label>'+l+'</label><select data-s="'+s+'" data-k="'+k+'" data-id="'+(id||'')+'">'+opts.map(o=>'<option'+(o===v?' selected':'')+'>'+esc(o)+'</option>').join('')+'</select></div>';
@@ -157,16 +180,16 @@ function renderRight(){let h='<div class="tabs"><button data-a="rt" data-v="prop
   if(o){h+='<h4>Objekt</h4>'+fld('o','Name','name',o.name,0,o.id)+fld('o','Kategorie','cat',o.cat||'',0,o.id)+fld('o','X (m)','x',o.x,1,o.id)+fld('o','Y (m)','y',o.y,1,o.id)+fld('o','Breite (m)','w',o.w,1,o.id)+fld('o','Länge (m)','h',o.h,1,o.id)+fld('o','Drehung °','rot',o.rot||0,1,o.id,'number','1')+fld('o','Farbe','color',o.color,0,o.id,'color')
    +(o.zone?'':fld('o','Leistung (W)','watt',o.watt,1,o.id,'number','1')+fld('o','Gewicht (kg)','kg',o.kg,1,o.id)+fld('o','Stromkreis','circ',o.circ||'',0,o.id)+fld('dmx','DMX-Universum','u',o.dmx.u,1,o.id,'number','1')+fld('dmx','DMX-Adresse','a',o.dmx.a,1,o.id,'number','1')+fld('dmx','Kanäle','ch',o.dmx.ch,1,o.id,'number','1'))
    +'<div class="row"><label>Sperren</label><input type="checkbox" data-s="o" data-k="lock" data-id="'+o.id+'"'+(o.lock?' checked':'')+'></div><div class="row"><label>Bereich (Fläche)</label><input type="checkbox" data-s="o" data-k="zone" data-id="'+o.id+'"'+(o.zone?' checked':'')+'></div>'
-   +'<h4>Anschlüsse</h4><table class="ports"><tr><th>Name</th><th>Art</th><th>x</th><th>y</th><th></th></tr>'+o.ports.map(p=>'<tr><td><input data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="n" value="'+esc(p.n)+'"></td><td><select data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="t">'+PT.map(t=>'<option'+(t===p.t?' selected':'')+'>'+t+'</option>').join('')+'</select></td><td><input type="number" step=".05" data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="x" value="'+p.x+'"></td><td><input type="number" step=".05" data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="y" value="'+p.y+'"></td><td><button data-a="pDelPort" data-id="'+o.id+'" data-pid="'+p.id+'">✕</button></td></tr>').join('')+'</table>'
+   +'<h4>Anschlüsse</h4><table class="ports"><tr><th>Name</th><th>Art</th><th>x</th><th>y</th><th></th></tr>'+o.ports.map(p=>'<tr><td><input data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="n" value="'+esc(p.n)+'"></td><td><select data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="t">'+endOpts(p.t)+'</select></td><td><input type="number" step=".05" data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="x" value="'+p.x+'"></td><td><input type="number" step=".05" data-s="p" data-id="'+o.id+'" data-pid="'+p.id+'" data-k="y" value="'+p.y+'"></td><td><button data-a="pDelPort" data-id="'+o.id+'" data-pid="'+p.id+'">✕</button></td></tr>').join('')+'</table>'
    +'<p><button data-a="addPort" data-id="'+o.id+'">＋ Anschluss</button> <button data-a="mirror">Spiegeln</button></p><p><button data-a="saveTpl">Als Vorlage speichern</button> <button data-a="dupSel">Duplizieren</button> <button data-a="delSel">Löschen</button></p>'}
   else if(sel.size>1)h+='<h4>'+sel.size+' Objekte</h4><p><button data-a="dupSel">Duplizieren</button> <button data-a="delSel">Löschen</button> <button data-a="lockSel">Sperren/Entsperren</button> <button data-a="rotSel">90° drehen</button></p>';
   else if(c){const u=used(c),bad=u>c.len+1e-9;h+='<h4>Kabel '+esc(c.nr)+'</h4>'+fld('c','Kennzeichnung','name',c.name,0,c.id)+fld('c','Verfügbar (m)','len',c.len,1,c.id)+fld('c','Reserve (m)','res',c.res||0,1,c.id)+fld('c','Farbe','color',c.color,0,c.id,'color')
-   +'<p>Art: <b>'+esc(c.t)+'</b><br>Verlegt (Weg + Reserve): <b class="'+(bad?'bad':'ok')+'">'+u.toFixed(2)+' m</b> von '+c.len+' m<br>Zwischenpunkte: '+c.pts.length+'<br>'+(bad?'<span class="bad">Zu kurz um '+(u-c.len).toFixed(2)+' m</span>':broken(c)?'<span class="bad">Anschluss fehlt</span>':'<span class="ok">Länge reicht</span>')+'</p><p>Doppelklick auf das Kabel fügt einen Zwischenpunkt hinzu, Doppelklick auf einen Punkt entfernt ihn.</p><p><button data-a="clrPts">Zwischenpunkte löschen</button> <button data-a="delCab">Kabel löschen</button></p>'}
+   +'<p>Enden: <b>A: '+esc(endName(c.ea))+'</b> → <b>B: '+esc(endName(c.eb))+'</b><br>Verlegt (Weg + Reserve): <b class="'+(bad?'bad':'ok')+'">'+u.toFixed(2)+' m</b> von '+c.len+' m<br>Zwischenpunkte: '+c.pts.length+'<br>'+(bad?'<span class="bad">Zu kurz um '+(u-c.len).toFixed(2)+' m</span>':broken(c)?'<span class="bad">Anschluss fehlt</span>':'<span class="ok">Länge reicht</span>')+'</p><p>Doppelklick auf das Kabel fügt einen Zwischenpunkt hinzu, Doppelklick auf einen Punkt entfernt ihn.</p><p><button data-a="clrPts">Zwischenpunkte löschen</button> <button data-a="delCab">Kabel löschen</button></p>'}
   else h+='<h4>Projekt</h4>'+fld('proj','Name','name',S.name,0)+sel_('proj','Maßstab 1:','N',String(S.N),['20','50','100'])+fld('proj','Raumbreite (m)','rw',S.room.w,1)+fld('proj','Raumlänge (m)','rh',S.room.h,1)+fld('proj','Raster (m)','grid',S.grid,1)+fld('proj','Leistungsgrenze (W)','limit',S.limit,1,'','number','100')+'<p style="color:var(--mu)">Objekte aus der Bibliothek auf die Fläche ziehen. Mit „Kabel“ Anschlüsse verbinden. Dient nur der Planung, keine sicherheitstechnische Freigabe.</p>'}
  $('#right').innerHTML=h;if(RO)$('#right').querySelectorAll('input,select,textarea,button[data-a]').forEach(x=>{if(!['rt','csv'].includes(x.dataset.a))x.disabled=true})}
 function overview(){let h='<h4>Kabelliste</h4>';
- h+=S.cables.length?'<table><tr><th>Nr</th><th>Typ</th><th>Von → Nach</th><th>Länge</th><th>Bereich</th></tr>'+S.cables.map(c=>{const a=objById(c.from.o),b=objById(c.to.o),u=used(c),bad=u>c.len+1e-9||broken(c),st=endPt(c.from)?zoneAt(endPt(c.from)):'–';
-  return '<tr><td>'+esc(c.nr)+'</td><td>'+esc(c.t)+'</td><td>'+esc(a?a.name:'?')+' → '+esc(b?b.name:'?')+'</td><td class="'+(bad?'bad':'')+'">'+u.toFixed(1)+'/'+c.len+' m'+(c.res?' (+'+c.res+')':'')+'</td><td>'+esc(st)+'</td></tr>'}).join('')+'</table>':'<p style="color:var(--mu)">Noch keine Kabel.</p>';
+ h+=S.cables.length?'<table><tr><th>Nr</th><th>Kabel (Enden)</th><th>Von → Nach</th><th>Länge</th><th>Bereich</th></tr>'+S.cables.map(c=>{const a=objById(c.from.o),b=objById(c.to.o),u=used(c),bad=u>c.len+1e-9||broken(c),st=endPt(c.from)?zoneAt(endPt(c.from)):'–';
+  return '<tr><td>'+esc(c.nr)+'</td><td>'+esc(c.name)+' ('+esc(endName(c.ea))+' → '+esc(endName(c.eb))+')</td><td>'+esc(a?a.name:'?')+' → '+esc(b?b.name:'?')+'</td><td class="'+(bad?'bad':'')+'">'+u.toFixed(1)+'/'+c.len+' m'+(c.res?' (+'+c.res+')':'')+'</td><td>'+esc(st)+'</td></tr>'}).join('')+'</table>':'<p style="color:var(--mu)">Noch keine Kabel.</p>';
  h+='<h4>Materialliste</h4><table><tr><th>Kabeltyp</th><th>Anz.</th><th>Gesamt</th></tr>'+matList().map(m=>'<tr><td>'+esc(m[0])+'</td><td>'+m[1]+'</td><td>'+m[2]+' m</td></tr>').join('')+'</table><p><button data-a="csv">CSV exportieren</button></p>';
  const circ={};S.objs.filter(o=>o.watt>0).forEach(o=>{const k=o.circ||'(ohne Stromkreis)';circ[k]=(circ[k]||0)+o.watt});const tot=Object.values(circ).reduce((a,b)=>a+b,0);
  h+='<h4>Strom (Planungswerte)</h4><table>'+Object.entries(circ).map(([k,v])=>'<tr><td>'+esc(k)+'</td><td class="'+(v>S.limit?'bad':'')+'">'+v+' W'+(v>S.limit?' &gt; '+S.limit:'')+'</td></tr>').join('')+'<tr><th>Summe</th><th>'+tot+' W</th></tr></table>';
@@ -174,8 +197,13 @@ function overview(){let h='<h4>Kabelliste</h4>';
  ds.forEach((x,i)=>ds.slice(i+1).forEach(y=>{if(x.u===y.u&&x.a<=y.e&&y.a<=x.e)cf.push(x.o.name+' ⟷ '+y.o.name+' (U'+x.u+')')}));
  h+='<h4>DMX</h4>'+(ds.length?'<table>'+ds.sort((p,r)=>p.u-r.u||p.a-r.a).map(x=>'<tr><td>U'+x.u+'</td><td>'+x.a+'–'+x.e+'</td><td>'+esc(x.o.name)+'</td></tr>').join('')+'</table>':'<p style="color:var(--mu)">Keine Adressen vergeben.</p>')+(cf.length?'<p class="bad">Adresskonflikte:<br>'+cf.map(esc).join('<br>')+'</p>':'');
  return h}
-function matList(){const m={};S.cables.forEach(c=>{const k=c.name;m[k]=m[k]||[k,0,0];m[k][1]++;m[k][2]+=+c.len});return Object.values(m).map(x=>[x[0],x[1],Math.round(x[2]*100)/100])}
-function renderAll(){renderLeft();renderRight();render();$('#bSel').classList.toggle('on',tool==='sel');$('#bCab').classList.toggle('on',tool==='cab');$('#bGrid').classList.toggle('on',showGrid);$('#bSnap').classList.toggle('on',S.snap);$('#bOrtho').classList.toggle('on',S.ortho);
+function matList(){const m={};S.cables.forEach(c=>{const k=c.name+' ['+endName(c.ea)+' → '+endName(c.eb)+']';m[k]=m[k]||[k,0,0];m[k][1]++;m[k][2]+=+c.len});return Object.values(m).map(x=>[x[0],x[1],Math.round(x[2]*100)/100])}
+let barSig='';
+function renderBar(){const b=$('#cabBar'),ct=S.ctypes.find(c=>c.id===curCt);let h='';
+ if(tool==='cab'&&!RO)h=ct?'<b>'+esc(ct.name)+'</b> · Ende A <select data-bar="a"'+(draft?' disabled':'')+'>'+endOpts(curEa)+'</select> Ende B <select data-bar="b"'+(draft?' disabled':'')+'>'+endOpts(curEb)+'</select>'+(S.ends.length?'':' <span class="bad">Erst im Tab „Enden“ Anschlussarten anlegen</span>'):'Wähle links im Tab „Kabel“ einen Kabeltyp.';
+ if(h===barSig)return;barSig=h;b.style.display=h?'flex':'none';b.innerHTML=h}
+$('#cabBar').addEventListener('change',e=>{const k=e.target.dataset.bar;if(k==='a')curEa=e.target.value;else if(k==='b')curEb=e.target.value;barSig=''});
+function renderAll(){barSig='';renderBar();renderLeft();renderRight();render();$('#bSel').classList.toggle('on',tool==='sel');$('#bCab').classList.toggle('on',tool==='cab');$('#bGrid').classList.toggle('on',showGrid);$('#bSnap').classList.toggle('on',S.snap);$('#bOrtho').classList.toggle('on',S.ortho);
  $('#projSel').innerHTML=PROJ.map(p=>'<option value="'+p.id+'"'+(p.id===S.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')||'<option>Kein Plan</option>'}
 
 /* ================= EXPORT ================= */
@@ -183,7 +211,7 @@ function planSVG(){const pp=3779.5275/S.N,R=S.room,m=.6;return '<svg xmlns="http
 function dl(name,data,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 const fn=ext=>S.name.replace(/[^\w\-äöüÄÖÜß ]/g,'_')+'.'+ext;
 function exportPng(){const svg=planSVG(),img=new Image(),u=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));img.onload=()=>{const c=document.createElement('canvas'),k=2;c.width=img.width*k;c.height=img.height*k;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{dl(fn('png'),b,'image/png');URL.revokeObjectURL(u)})};img.src=u}
-function exportCsv(){const rows=[['Kabeltyp','Anzahl','Gesamtlänge (m)']].concat(matList()),rows2=[[],['Nr','Typ','Von','Nach','Verlegt (m)','Verfügbar (m)','Reserve (m)','Status','Bereich']].concat(S.cables.map(c=>{const a=objById(c.from.o),b=objById(c.to.o),u=used(c);return[c.nr,c.t,a?a.name:'?',b?b.name:'?',u.toFixed(2),c.len,c.res||0,broken(c)?'Anschluss fehlt':u>c.len?'zu kurz':'ok',endPt(c.from)?zoneAt(endPt(c.from)):'-']}));
+function exportCsv(){const rows=[['Kabeltyp','Anzahl','Gesamtlänge (m)']].concat(matList()),rows2=[[],['Nr','Kabel','Ende A','Ende B','Von','Nach','Verlegt (m)','Verfügbar (m)','Reserve (m)','Status','Bereich']].concat(S.cables.map(c=>{const a=objById(c.from.o),b=objById(c.to.o),u=used(c);return[c.nr,c.name,endName(c.ea),endName(c.eb),a?a.name:'?',b?b.name:'?',u.toFixed(2),c.len,c.res||0,broken(c)?'Anschluss fehlt':u>c.len?'zu kurz':'ok',endPt(c.from)?zoneAt(endPt(c.from)):'-']}));
  dl(fn('csv'),'\ufeff'+rows.concat(rows2).map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\r\n'),'text/csv')}
 function printPlan(size){$('#printArea').innerHTML=planSVG();let st=document.getElementById('pgs')||document.head.appendChild(Object.assign(document.createElement('style'),{id:'pgs'}));st.textContent='@page{size:'+size+' landscape;margin:10mm}';window.print()}
 
@@ -222,7 +250,7 @@ function zoom(f){const r=cv.getBoundingClientRect(),mx=r.width/2,my=r.height/2,z
 $('#left').addEventListener('dragstart',e=>{const it=e.target.closest('[data-tpl]');if(it)e.dataTransfer.setData('text/plain',it.dataset.tpl)});
 $('#left').addEventListener('input',e=>{if(e.target.id==='q'){q=e.target.value;const p=e.target.selectionStart;renderLeft();const n=$('#q');n.focus();n.setSelectionRange(p,p)}});
 document.body.addEventListener('click',e=>{
- const ct=e.target.closest('[data-ct]');if(ct&&!RO){curCt=ct.dataset.ct;tool='cab';draft=null;renderAll();return}
+ const ct=e.target.closest('[data-ct]');if(ct&&!RO){armCt(ct.dataset.ct);tool='cab';draft=null;renderAll();return}
  const it=e.target.closest('[data-tpl]');if(it&&!e.target.closest('button')){const c=center();addObj(it.dataset.tpl,c.x,c.y);return}
  const b=e.target.closest('[data-a]');if(!b||(RO&&!RO_OK.has(b.dataset.a)))return;const a=b.dataset.a,id=b.dataset.id,o=sel.size===1?objById([...sel][0]):null;
  const A={
@@ -231,7 +259,7 @@ document.body.addEventListener('click',e=>{
   pDup(){CLOUD.dup()},
   pDel(){CLOUD.del()},
   open(){if(!RO)$('#file').click()},save(){dl(fn('json'),JSON.stringify(S,null,1),'application/json')},
-  undo,redo,tSel(){tool='sel';draft=null;renderAll()},tCab(){tool='cab';if(!curCt)curCt=S.ctypes[0]&&S.ctypes[0].id;ltab='cab';renderAll()},
+  undo,redo,tSel(){tool='sel';draft=null;renderAll()},tCab(){tool='cab';if(!curCt&&S.ctypes[0])armCt(S.ctypes[0].id);ltab='cab';renderAll()},
   zo(){zoom(1/1.25)},zi(){zoom(1.25)},fit,tGrid(){showGrid=!showGrid;renderAll()},tSnap(){S.snap=!S.snap;commit()},tOrtho(){S.ortho=!S.ortho;commit()},
   lt(){ltab=b.dataset.v;renderLeft()},rt(){rtab=b.dataset.v;renderRight()},
   tplNew(){const n=prompt('Name der Vorlage:','Neues Objekt');if(!n)return;const cat=prompt('Kategorie (z. B. Licht, Audio, Bereiche):','Eigene Objekte')||'Eigene Objekte';const zone=confirm('Ist das ein Bereich bzw. eine Fläche (z. B. Bühne, FOH, Lager)?\nOK = Bereich, Abbrechen = normales Objekt');S.tpls.push({id:uid(),cat,name:n,w:zone?4:1,h:zone?3:1,color:'#1EAE95',zone:zone?1:0,ports:[],watt:0,kg:0});const c=center();commit();addObj(S.tpls[S.tpls.length-1].id,c.x,c.y)},
@@ -241,9 +269,11 @@ document.body.addEventListener('click',e=>{
    if(t&&confirm('Vorlage „'+t.name+'“ aktualisieren? (Abbrechen = als neue Vorlage speichern)'))Object.assign(t,d);else{t=Object.assign({id:uid()},d);S.tpls.push(t);o.tpl=t.id}commit();toast('Vorlage gespeichert.')},
   dupSel(){dupObjs(sel,.5)},delSel(){delObjs(new Set(sel))},lockSel(){sel.forEach(i=>{const x=objById(i);x.lock=!x.lock});commit()},rotSel(){sel.forEach(i=>{const x=objById(i);x.rot=((x.rot||0)+90)%360});commit()},
   mirror(){if(o){o.ports.forEach(p=>p.x=Math.round((o.w-p.x)*1e3)/1e3);commit()}},
-  addPort(){o.ports.push({id:uid(),n:'Anschluss',t:'Strom',x:Math.round(o.w/2*100)/100,y:o.h});commit()},
+  addPort(){if(!S.ends.length){toast('Lege zuerst im Tab „Enden“ Anschlussarten an.',1);ltab='end';renderLeft();return}o.ports.push({id:uid(),n:'Anschluss',t:S.ends[0].id,x:Math.round(o.w/2*100)/100,y:o.h});commit()},
   pDelPort(){const ob=objById(id),n=S.cables.filter(c=>c.from.p===b.dataset.pid||c.to.p===b.dataset.pid).length;S.cables=S.cables.filter(c=>c.from.p!==b.dataset.pid&&c.to.p!==b.dataset.pid);ob.ports=ob.ports.filter(p=>p.id!==b.dataset.pid);commit();if(n)toast(n+' Kabel am gelöschten Anschluss entfernt.')},
-  ctNew(){const c={id:uid(),name:'Neues Kabel',t:'Strom',len:5,color:'#ffffff'};S.ctypes.push(c);curCt=c.id;commit()},
+  ctNew(){if(!S.ends.length){toast('Lege zuerst im Tab „Enden“ mindestens eine Anschlussart an.',1);ltab='end';renderLeft();return}const c={id:uid(),name:'Neues Kabel',a:S.ends[0].id,b:S.ends[0].id,len:5,color:'#ffffff'};S.ctypes.push(c);armCt(c.id);commit()},
+  endNew(){const n=(prompt('Name der Anschlussart (z. B. XLR männlich, Schuko, CEE 16 A, RJ45):')||'').trim();if(!n)return;if(S.ends.some(e=>e.name.toLowerCase()===n.toLowerCase())){toast('Diese Anschlussart gibt es schon.',1);return}S.ends.push({id:uid(),name:n,color:PAL[S.ends.length%PAL.length]});commit()},
+  endDel(){const u=endUse(id);if(u&&!confirm('Diese Anschlussart wird noch '+u+'× verwendet. Trotzdem löschen? (Die Stellen zeigen dann „unbekannt“.)'))return;S.ends=S.ends.filter(e=>e.id!==id);adopt();commit()},
   ctDel(){S.ctypes=S.ctypes.filter(k=>k.id!==id);curCt=null;commit()},
   clrPts(){const c=S.cables.find(k=>k.id===selC);c.pts=[];commit()},delCab(){S.cables=S.cables.filter(k=>k.id!==selC);selC=null;commit()},csv:exportCsv};
  if(A[a])A[a]()});
@@ -254,8 +284,8 @@ $('#right').addEventListener('change',e=>{if(RO)return;const t=e.target,k=t.data
  if(s==='o')tg=objById(t.dataset.id);else if(s==='dmx')tg=objById(t.dataset.id).dmx;else if(s==='p')tg=objById(t.dataset.id).ports.find(p=>p.id===t.dataset.pid);else if(s==='c')tg=S.cables.find(c=>c.id===t.dataset.id);
  if(s==='proj'){if(k==='N')S.N=+v;else if(k==='rw')S.room.w=Math.max(1,v);else if(k==='rh')S.room.h=Math.max(1,v);else S[k]=v}else if(tg){if((k==='w'||k==='h')&&v<.01)v=.01;tg[k]=v}
  commit()});
-$('#left').addEventListener('change',e=>{if(RO)return;const t=e.target;if(t.dataset.s!=='ct')return;const c=S.ctypes.find(k=>k.id===t.dataset.id);c[t.dataset.k]=t.type==='number'?(parseFloat(t.value)||0):t.value;
- S.cables.forEach(k=>{if(k.ct===c.id&&['color'].includes(t.dataset.k))k.color=c.color});commit()});
+$('#left').addEventListener('change',e=>{if(RO)return;const t=e.target;if(t.dataset.s==='end'){const en=S.ends.find(x=>x.id===t.dataset.id);if(en){en[t.dataset.k]=t.value.trim()||en[t.dataset.k];commit()}return}if(t.dataset.s!=='ct')return;const c=S.ctypes.find(k=>k.id===t.dataset.id);c[t.dataset.k]=t.type==='number'?(parseFloat(t.value)||0):t.value;
+ S.cables.forEach(k=>{if(k.ct===c.id&&['color'].includes(t.dataset.k))k.color=c.color});if(c.id===curCt){curEa=c.a;curEb=c.b}commit()});
 document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target.tagName))return;const k=e.key.toLowerCase(),m=e.ctrlKey||e.metaKey;if(RO&&!(k==='g'||k==='+'||k==='='||k==='-'||k==='escape'||k==='v'||(m&&k==='s')))return;
  if(m&&k==='z'){e.preventDefault();e.shiftKey?redo():undo()}else if(m&&k==='y'){e.preventDefault();redo()}
  else if(m&&k==='s'){e.preventDefault();dl(fn('json'),JSON.stringify(S,null,1),'application/json')}
@@ -266,13 +296,13 @@ document.addEventListener('keydown',e=>{if(/INPUT|SELECT|TEXTAREA/.test(e.target
  else if(k==='delete'||k==='backspace'){if(sel.size)delObjs(new Set(sel));else if(selC){S.cables=S.cables.filter(c=>c.id!==selC);selC=null;commit()}}
  else if(k==='escape'){draft=null;tool='sel';renderAll()}
  else if(!m&&k==='v'){tool='sel';draft=null;renderAll()}
- else if(!m&&k==='k'){tool='cab';if(!curCt)curCt=S.ctypes[0]&&S.ctypes[0].id;ltab='cab';renderAll()}
+ else if(!m&&k==='k'){tool='cab';if(!curCt&&S.ctypes[0])armCt(S.ctypes[0].id);ltab='cab';renderAll()}
  else if(!m&&k==='r'){sel.forEach(i=>{const o=objById(i);o.rot=((o.rot||0)+90)%360});if(sel.size)commit()}
  else if(!m&&k==='g'){showGrid=!showGrid;renderAll()}
  else if(k==='+'||k==='=')zoom(1.25);else if(k==='-')zoom(1/1.25);
  else if(k.startsWith('arrow')&&sel.size){e.preventDefault();const st=e.shiftKey?1:(S.grid||.1),d={arrowleft:[-st,0],arrowright:[st,0],arrowup:[0,-st],arrowdown:[0,st]}[k];sel.forEach(i=>{const o=objById(i);if(!o.lock){o.x=Math.round((o.x+d[0])*1e4)/1e4;o.y=Math.round((o.y+d[1])*1e4)/1e4}});commit()}});
 window.addEventListener('resize',render);
-window.PL={get RO(){return RO},LIB,get S(){return S},addObj,addCable,route,used,plen,planSVG,matList,undo,redo,load,newProj,get hist(){return hist.length}};
+window.PL={get RO(){return RO},LIB,commit,armCt,get S(){return S},addObj,addCable,route,used,plen,planSVG,matList,undo,redo,load,newProj,get hist(){return hist.length}};
 
 /* ================= START ================= */
 S=newProj('Kein Plan');cur=JSON.stringify(S);renderAll();fit();
@@ -287,18 +317,18 @@ const app=initializeApp({apiKey:"AIzaSyDQpvKRIGh55OHYeqtcZ7Hzz4qcie_KAXU",authDo
 const auth=getAuth(app),db=getFirestore(app),gateEl=document.getElementById('gate');
 let me=null,unsubP=null,unsubL=null,libSig='';
 const gate=(m,link)=>{gateEl.style.display='flex';gateEl.innerHTML='<div>'+m+'</div>'+(link?'<a href="https://gymwentechnik.de/gwtorgatool.html" target="_top" style="color:var(--li)">Zum gwtOrgatool (Anmeldung)</a>':'')};
-const sig=()=>JSON.stringify([LIB.tpls,LIB.ctypes]);
-function applyLib(d){LIB.tpls=d&&d.tpls?JSON.parse(d.tpls):[];LIB.ctypes=d&&d.ctypes?JSON.parse(d.ctypes):[];libSig=sig();S.tpls=LIB.tpls;S.ctypes=LIB.ctypes;renderLeft();renderRight()}
+const sig=()=>JSON.stringify([LIB.tpls,LIB.ctypes,LIB.ends]);
+function applyLib(d){LIB.tpls=d&&d.tpls?JSON.parse(d.tpls):[];LIB.ctypes=d&&d.ctypes?JSON.parse(d.ctypes):[];LIB.ends=d&&d.ends?JSON.parse(d.ends):[];LIB.ctypes.forEach(c=>{if(c.a===undefined)c.a=c.b=c.t});libSig=sig();S.tpls=LIB.tpls;S.ctypes=LIB.ctypes;S.ends=LIB.ends;renderLeft();renderRight()}
 async function refreshList(){const s=await getDocs(collection(db,'planner_projects'));PROJ=s.docs.map(d=>({id:d.id,name:d.data().name||'Plan'})).sort((a,b)=>a.name.localeCompare(b.name,'de'))}
 function loadRemote(snap,keep){const d=snap.data();let p;try{p=JSON.parse(d.data)}catch(e){toast('Dieser Plan ist beschädigt.',1);return}
- p.id=snap.id;p.name=d.name||p.name;p.tpls=LIB.tpls;p.ctypes=LIB.ctypes;load(p,keep);if(keep)sel=new Set([...sel].filter(i=>objById(i)))}
+ p.id=snap.id;p.name=d.name||p.name;p.tpls=LIB.tpls;p.ctypes=LIB.ctypes;p.ends=LIB.ends;(p.cables||[]).forEach(c=>{if(c.ea===undefined){c.ea=c.eb=c.t}});load(p,keep);if(keep)sel=new Set([...sel].filter(i=>objById(i)))}
 async function openProject(id){
  if(unsubP){unsubP();unsubP=null}
  const snap=await getDoc(doc(db,'planner_projects',id));
  if(!snap.exists()){toast('Dieser Plan existiert nicht mehr.',1);await refreshList();renderAll();return}
  loadRemote(snap,false);try{localStorage.setItem('gwt_planer_last',id)}catch(e){}
  unsubP=onSnapshot(doc(db,'planner_projects',id),s=>{if(!s.exists()||s.metadata.hasPendingWrites)return;const d=s.data();if(d.updatedBy===me)return;if(!RO&&saveTimer)return;loadRemote(s,true);setSync('Von einem Teammitglied aktualisiert')})}
-async function createProject(p){p.id=Math.random().toString(36).slice(2,9);const{tpls,ctypes,...proj}=p;
+async function createProject(p){p.id=Math.random().toString(36).slice(2,9);const{tpls,ctypes,ends,...proj}=p;
  await setDoc(doc(db,'planner_projects',p.id),{name:p.name,data:JSON.stringify(proj),updatedAt:serverTimestamp(),updatedBy:me});
  await refreshList();await openProject(p.id)}
 CLOUD.open=openProject;
@@ -308,9 +338,9 @@ CLOUD.importProject=async p=>{p.name=p.name||'Import';await createProject(p)};
 CLOUD.del=async()=>{if(!confirm('Plan „'+S.name+'“ für ALLE löschen? Das kann nicht rückgängig gemacht werden.'))return;
  await deleteDoc(doc(db,'planner_projects',S.id));await refreshList();if(PROJ.length)await openProject(PROJ[0].id);else await createProject(newProj('Plan 1'))};
 CLOUD.save=async()=>{if(RO||!S.id||!me)return;
- try{const{tpls,ctypes,...proj}=S,data=JSON.stringify(proj);if(data.length>900000)throw new Error('Der Plan ist zu groß für die Datenbank.');
+ try{const{tpls,ctypes,ends,...proj}=S,data=JSON.stringify(proj);if(data.length>900000)throw new Error('Der Plan ist zu groß für die Datenbank.');
   await setDoc(doc(db,'planner_projects',S.id),{name:S.name,data,updatedAt:serverTimestamp(),updatedBy:me});
-  if(sig()!==libSig){await setDoc(doc(db,'planner_library','main'),{tpls:JSON.stringify(S.tpls),ctypes:JSON.stringify(S.ctypes),updatedAt:serverTimestamp(),updatedBy:me});LIB.tpls=S.tpls;LIB.ctypes=S.ctypes;libSig=sig()}
+  if(sig()!==libSig){await setDoc(doc(db,'planner_library','main'),{tpls:JSON.stringify(S.tpls),ctypes:JSON.stringify(S.ctypes),ends:JSON.stringify(S.ends),updatedAt:serverTimestamp(),updatedBy:me});LIB.tpls=S.tpls;LIB.ctypes=S.ctypes;LIB.ends=S.ends;libSig=sig()}
   const e=PROJ.find(x=>x.id===S.id);if(e&&e.name!==S.name){e.name=S.name;renderAll()}
   setSync('Gespeichert ✓')}catch(e){console.error(e);setSync('Speichern fehlgeschlagen');toast('Speichern fehlgeschlagen: '+(e.code==='permission-denied'?'keine Berechtigung (Firestore-Regeln veröffentlicht?).':e.message),1)}};
 onAuthStateChanged(auth,async user=>{
